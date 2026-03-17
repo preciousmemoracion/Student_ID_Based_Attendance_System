@@ -1,0 +1,49 @@
+/* Body and basic layout */
+body {
+    font-family: Arial, sans-serif;
+    background: url('../images/a_digital_illustration_in_a_modern_and_clean_style.png') no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navbar and Sidebar */
+.navbar, .sidebar {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Cards */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    background-color: rgba(255,255,255,0.95);
+}
+
+/* Buttons */
+.btn-success {
+    background-color: #28a745;
+    border: none;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+}
+
+/* Tables */
+.table {
+    background: white;
+    border-radius: 5px;
+}
+
+/* Sidebar links */
+.sidebar a {
+    text-decoration: none;
+    color: white;
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+.sidebar a:hover {
+    background-color: rgba(255,255,255,0.2);
+}
