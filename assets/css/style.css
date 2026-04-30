@@ -1,0 +1,35 @@
+body {
+    background: #f1f5f9;
+}
+
+.sidebar {
+    height: 100vh;
+    background: #1e293b;
+    color: white;
+    width: 250px;
+    position: fixed;
+    padding: 20px;
+}
+
+.sidebar a {
+    display: block;
+    color: #cbd5e1;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+    background: #334155;
+    color: white;
+}
+
+.main {
+    margin-left: 260px;
+    padding: 20px;
+}
+
+.card {
+    border-radius: 12px;
+}

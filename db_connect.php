@@ -1,18 +1,12 @@
-<link rel="stylesheet" href="assets/css/custom.css">
-<script src="assets/js/scripts.js"></script>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <?php
-$host = "localhost";
-$username = "root";
-$password = "";
-$database = "attendance_system";
+$conn = new mysqli("localhost", "root", "", "attendance_system");
 
-$conn = mysqli_connect($host, $username, $password, $database);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-if (!$conn) {
-    die("Database connection failed: " . mysqli_connect_error());
+// FIX SESSION
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 ?>
-```
