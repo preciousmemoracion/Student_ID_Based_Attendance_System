@@ -8,14 +8,16 @@ if (!isset($_SESSION['admin'])) {
     exit();
 }
 
-// ✅ Disable caching (remove the duplicate Cache-Control line)
+// ✅ Disable caching
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
 // 📊 Queries
 $students = $conn->query("SELECT * FROM students")->num_rows;
-$attendance = $conn->query("SELECT * FROM attendance")->num_rows;
+
+// ✅ FIXED: Count only TODAY's attendance records
+$attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE()")->num_rows;
 ?>
 
 <!DOCTYPE html>
@@ -437,9 +439,10 @@ body > * { position: relative; z-index: 1; }
             <div class="stat-card green shadow">
                 <div class="stat-icon"><i class="fa fa-clipboard-check"></i></div>
                 <div>
-                    <div class="stat-label">Total Attendance</div>
+                    <div class="stat-label">Today's Attendance</div>
                     <div class="stat-number"><?= $attendance ?></div>
-                    <div class="stat-sub">Logs recorded so far</div>
+                    <!-- ✅ FIXED: Updated label to reflect today only -->
+                    <div class="stat-sub">Logs recorded today</div>
                 </div>
             </div>
         </div>
