@@ -125,6 +125,7 @@ body > * { position: relative; z-index: 1; }
     max-width: 1280px; margin: 0 auto;
     padding: 0 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem;
 }
 
 .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
@@ -463,9 +464,9 @@ body > * { position: relative; z-index: 1; }
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,0.09);
     border: 1px solid var(--border); color: rgba(255,255,255,0.88);
-    border-radius: 12px; padding: 0.58rem 1.2rem;
+    border-radius: 12px; padding: 0.38rem 1rem;
     font-family: 'Outfit', sans-serif;
-    font-size: 0.85rem; font-weight: 700;
+    font-size: 0.82rem; font-weight: 700;
     text-decoration: none;
     transition: background 0.2s, transform 0.2s;
 }
@@ -520,11 +521,10 @@ body > * { position: relative; z-index: 1; }
             <img src="../img/icas_logo.jpeg" alt="Logo" class="brand-logo">
             <span class="brand-name">Attendance <span>System</span></span>
         </a>
-        <div class="user-chip">
-            <div class="avatar"><?= strtoupper(substr($_SESSION['admin'] ?? $_SESSION['instructor'], 0, 1)) ?></div>
-            <?= htmlspecialchars($_SESSION['admin'] ?? $_SESSION['instructor']) ?>
-            <span class="online-dot"></span>
-        </div>
+
+        <a href="dashboard.php" class="btn-back">
+            <i class="fa fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 </header>
 
@@ -551,13 +551,8 @@ body > * { position: relative; z-index: 1; }
         </div>
     </div>
 
-    <!-- ✅ TOOLBAR: Back to Dashboard moved here, alongside search and Add Subject -->
+    <!-- TOOLBAR: search + Add Subject only -->
     <div class="toolbar">
-
-        <!-- ✅ MOVED: Back to Dashboard now at top left of toolbar -->
-        <a href="dashboard.php" class="btn-back">
-            <i class="fa fa-arrow-left"></i> Back to Dashboard
-        </a>
 
         <div class="search-box">
             <i class="fa fa-magnifying-glass s-icon"></i>
@@ -566,7 +561,6 @@ body > * { position: relative; z-index: 1; }
                    oninput="filterCards()" autocomplete="off">
         </div>
 
-        <!-- ✅ MOVED: Add Subject also promoted to toolbar (admin only) -->
         <?php if(isset($_SESSION['admin'])): ?>
         <a href="register_subject.php" class="btn-add">
             <i class="fa fa-plus"></i> Add Subject

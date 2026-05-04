@@ -61,7 +61,7 @@ if($message != ""){
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -98,52 +98,50 @@ body::before {
 
 body > * { position: relative; z-index: 1; }
 
-/* ── NAVBAR ── */
-.navbar {
-    background: rgba(8,20,60,0.60);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+/* ── TOPBAR (matches students.php) ── */
+.topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,12,40,0.75);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
     border-bottom: 1px solid var(--border);
-    padding: 0.65rem 0;
+    padding: 0.6rem 0;
 }
 
-.navbar-brand {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.15rem;
-    color: #fff !important;
-    gap: 12px;
+.topbar-inner {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem;
 }
 
-.navbar-brand img {
-    width: 42px; height: 42px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.25);
-    box-shadow: 0 0 0 4px rgba(37,99,235,0.25);
+.brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+
+.brand-logo {
+    width: 40px; height: 40px; border-radius: 12px; object-fit: cover;
+    border: 1.5px solid rgba(59,130,246,0.45);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.14), 0 4px 14px rgba(0,0,0,0.4);
 }
 
-.nav-admin {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.85);
-    display: flex;
-    align-items: center;
-    gap: 7px;
+.brand-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem; font-weight: 800;
+    color: #fff; letter-spacing: -0.2px;
 }
+.brand-name span { color: #60A5FA; }
 
-.nav-admin .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #10B981;
-    box-shadow: 0 0 6px #10B981;
-    animation: pulse 2s infinite;
+.btn-nav-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.09);
+    border: 1px solid var(--border); color: rgba(255,255,255,0.88);
+    border-radius: 12px; padding: 0.38rem 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem; font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
 }
-
-@keyframes pulse {
-    0%,100% { opacity:1; transform:scale(1); }
-    50%      { opacity:0.5; transform:scale(1.35); }
-}
+.btn-nav-back:hover { background: rgba(255,255,255,0.14); transform: translateX(-3px); color: #fff; }
+.btn-nav-back i { font-size: 0.78rem; }
 
 /* ── CENTER LAYOUT ── */
 .page-center {
@@ -346,19 +344,18 @@ body > * { position: relative; z-index: 1; }
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container">
-        <span class="navbar-brand d-flex align-items-center">
-            <img src="../img/icas_logo.jpeg" alt="Logo">
-            Attendance System
-        </span>
-        <span class="nav-admin ms-auto">
-            <span class="dot"></span>
-            <?= htmlspecialchars($_SESSION['admin']) ?>
-        </span>
+<!-- ── TOPBAR (matches students.php) ── -->
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="#">
+            <img src="../img/icas_logo.jpeg" alt="Logo" class="brand-logo">
+            <span class="brand-name">Attendance <span>System</span></span>
+        </a>
+        <a href="dashboard.php" class="btn-nav-back">
+            <i class="fa fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
-</nav>
+</header>
 
 <!-- CENTERED FORM -->
 <div class="page-center">
@@ -434,9 +431,7 @@ body > * { position: relative; z-index: 1; }
 
             </form>
 
-            <a href="dashboard.php" class="back-link">
-                <i class="fa fa-arrow-left"></i> Back to Dashboard
-            </a>
+
 
         </div>
     </div>

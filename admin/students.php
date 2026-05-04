@@ -12,10 +12,6 @@ if(!isset($_SESSION['admin'])){
 
 if(isset($_GET['delete_id'])){
     $id = $_GET['delete_id'];
-<<<<<<< HEAD
-=======
-
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     $stmt = $conn->prepare("DELETE FROM students WHERE student_id = ?");
     $stmt->bind_param("s", $id);
     $stmt->execute();
@@ -23,15 +19,8 @@ if(isset($_GET['delete_id'])){
     exit();
 }
 
-<<<<<<< HEAD
 $result = $conn->query("SELECT * FROM students ORDER BY section ASC, name ASC");
 
-=======
-// Fetch all students ordered by section then name
-$result = $conn->query("SELECT * FROM students ORDER BY section ASC, name ASC");
-
-// Group students by section
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
 $sections = [];
 $total = 0;
 while($row = $result->fetch_assoc()){
@@ -46,14 +35,14 @@ while($row = $result->fetch_assoc()){
     <title>Registered Students</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
     :root {
         --blue:    #2563EB;
         --blue-lt: #3B82F6;
         --green:   #059669;
-        --border:  rgba(255,255,255,0.14);
+        --border:  rgba(255,255,255,0.10);
         --muted:   rgba(255,255,255,0.88);
         --radius:  18px;
     }
@@ -80,48 +69,49 @@ while($row = $result->fetch_assoc()){
 
     body > * { position: relative; z-index: 1; }
 
-    /* ── NAVBAR ── */
-    .navbar {
-        background: rgba(8,20,60,0.60);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
+    /* ── TOPBAR (matches subjects.php) ── */
+    .topbar {
+        position: sticky; top: 0; z-index: 100;
+        background: rgba(5,12,40,0.75);
+        backdrop-filter: blur(22px) saturate(180%);
+        -webkit-backdrop-filter: blur(22px) saturate(180%);
         border-bottom: 1px solid var(--border);
-        padding: 0.65rem 0;
+        padding: 0.6rem 0;
     }
 
-    .navbar-brand {
-        font-family: 'Syne', sans-serif;
-        font-weight: 800;
-        font-size: 1.15rem;
-        color: #fff !important;
-        gap: 12px;
+    .topbar-inner {
+        max-width: 1100px; margin: 0 auto;
+        padding: 0 1.5rem;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem;
     }
 
-    .navbar-brand img {
-        width: 42px; height: 42px;
-        object-fit: cover; border-radius: 50%;
-        border: 2px solid rgba(255,255,255,0.25);
-        box-shadow: 0 0 0 4px rgba(37,99,235,0.25);
+    .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+
+    .brand-logo {
+        width: 40px; height: 40px; border-radius: 12px; object-fit: cover;
+        border: 1.5px solid rgba(59,130,246,0.45);
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.14), 0 4px 14px rgba(0,0,0,0.4);
     }
 
-    /* ── Back button in navbar ── */
+    .brand-name {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1rem; font-weight: 800;
+        color: #fff; letter-spacing: -0.2px;
+    }
+    .brand-name span { color: #60A5FA; }
+
     .btn-nav-back {
-        display: inline-flex; align-items: center; gap: 7px;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.18);
-        border-radius: 10px;
-        color: rgba(255,255,255,0.85);
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.09);
+        border: 1px solid var(--border); color: rgba(255,255,255,0.88);
+        border-radius: 12px; padding: 0.38rem 1rem;
+        font-family: 'Outfit', sans-serif;
         font-size: 0.82rem; font-weight: 700;
-        padding: 0.38rem 1rem;
         text-decoration: none;
-        font-family: 'DM Sans', sans-serif;
-        transition: background 0.2s, transform 0.2s, color 0.2s;
+        transition: background 0.2s, transform 0.2s;
     }
-    .btn-nav-back:hover {
-        background: rgba(255,255,255,0.16);
-        color: #fff;
-        transform: translateX(-2px);
-    }
+    .btn-nav-back:hover { background: rgba(255,255,255,0.14); transform: translateX(-3px); color: #fff; }
     .btn-nav-back i { font-size: 0.78rem; }
 
     /* ── MAIN WRAP ── */
@@ -159,22 +149,14 @@ while($row = $result->fetch_assoc()){
     }
 
     /* ── STATS ROW ── */
-<<<<<<< HEAD
     .stats-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.8rem; }
-=======
-    .stats-row {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin-bottom: 1.8rem;
-    }
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
 
     .stat-card {
         background: rgba(8,20,60,0.40);
         backdrop-filter: blur(16px);
-<<<<<<< HEAD
-        border-radius: 14px; border: 1px solid var(--border);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 14px;
+        border: 1px solid var(--border);
         padding: 1rem 1.4rem;
         display: flex; align-items: center; gap: 12px;
         flex: 1; min-width: 160px;
@@ -185,69 +167,6 @@ while($row = $result->fetch_assoc()){
         width: 40px; height: 40px; border-radius: 10px;
         display: flex; align-items: center; justify-content: center;
         font-size: 1rem; flex-shrink: 0;
-=======
-        -webkit-backdrop-filter: blur(16px);
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        padding: 1rem 1.4rem;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex: 1;
-        min-width: 160px;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.2);
-    }
-
-    .stat-card .stat-icon {
-        width: 40px; height: 40px;
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1rem;
-        flex-shrink: 0;
-    }
-
-    .stat-card .stat-icon.blue  { background: rgba(37,99,235,0.25);  color: #93C5FD; }
-    .stat-card .stat-icon.green { background: rgba(5,150,105,0.25);   color: #6EE7B7; }
-    .stat-card .stat-icon.amber { background: rgba(217,119,6,0.25);   color: #FCD34D; }
-
-    .stat-card .stat-val {
-        font-family: 'Syne', sans-serif;
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #fff;
-        line-height: 1;
-    }
-
-    .stat-card .stat-lbl {
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--muted);
-        margin-top: 2px;
-    }
-
-    /* ── TOOLBAR ── */
-    .toolbar {
-        background: rgba(8,20,60,0.40);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        padding: 1rem 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.2);
-    }
-
-    /* ── SEARCH BAR ── */
-    .search-wrap {
-        position: relative;
-        max-width: 280px;
-        flex: 1;
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     }
 
     .stat-card .stat-icon.blue  { background: rgba(37,99,235,0.25);  color: #93C5FD; }
@@ -261,6 +180,7 @@ while($row = $result->fetch_assoc()){
     .toolbar {
         background: rgba(8,20,60,0.40);
         backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border-radius: 14px; border: 1px solid var(--border);
         padding: 1rem 1.25rem;
         display: flex; align-items: center; justify-content: space-between;
@@ -269,6 +189,7 @@ while($row = $result->fetch_assoc()){
         box-shadow: 0 4px 18px rgba(0,0,0,0.2);
     }
 
+    /* ── SEARCH BAR ── */
     .search-wrap { position: relative; max-width: 280px; flex: 1; }
     .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); font-size: 0.85rem; }
     .search-wrap input {
@@ -281,6 +202,7 @@ while($row = $result->fetch_assoc()){
     .search-wrap input::placeholder { color: rgba(255,255,255,0.45); }
     .search-wrap input:focus { outline: none; border-color: var(--blue-lt); background: rgba(255,255,255,0.15); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
 
+    /* ── SECTION FILTER ── */
     .section-filter select {
         background: rgba(255,255,255,0.10);
         border: 1px solid var(--border); border-radius: 10px;
@@ -294,6 +216,7 @@ while($row = $result->fetch_assoc()){
     .section-filter select:focus { outline: none; border-color: var(--blue-lt); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
     .section-filter select option { background: #0a1a4a; color: #fff; }
 
+    /* ── TOGGLE CONTROLS ── */
     .toggle-controls { display: flex; gap: 0.5rem; align-items: center; }
 
     .btn-toggle-all {
@@ -312,7 +235,9 @@ while($row = $result->fetch_assoc()){
     .section-header {
         display: flex; align-items: center; justify-content: space-between;
         background: rgba(29,78,216,0.50);
-        backdrop-filter: blur(12px); border-radius: 14px 14px 0 0;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 14px 14px 0 0;
         border: 1px solid rgba(59,130,246,0.3); border-bottom: none;
         padding: 0.9rem 1.25rem; cursor: pointer; user-select: none;
         transition: background 0.2s;
@@ -328,7 +253,6 @@ while($row = $result->fetch_assoc()){
         display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
     }
 
-<<<<<<< HEAD
     .section-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; margin: 0; }
     .section-subtitle { font-size: 0.73rem; color: rgba(255,255,255,0.55); margin: 0; }
     .section-header-right { display: flex; align-items: center; gap: 10px; }
@@ -341,221 +265,35 @@ while($row = $result->fetch_assoc()){
     .chevron-icon { font-size: 0.8rem; color: rgba(255,255,255,0.7); transition: transform 0.3s ease; }
     .chevron-icon.rotated { transform: rotate(-90deg); }
 
+    /* ── SECTION BODY ── */
     .section-body {
         background: rgba(8,20,60,0.35); backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border-radius: 0 0 14px 14px; border: 1px solid rgba(59,130,246,0.3); border-top: none;
         overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease;
         max-height: 2000px; opacity: 1;
-=======
-    /* ── SECTION FILTER ── */
-    .section-filter select {
-        background: rgba(255,255,255,0.10);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        color: #fff;
-        padding: 0.45rem 2.2rem 0.45rem 0.9rem;
-        font-size: 0.85rem;
-        font-family: 'DM Sans', sans-serif;
-        appearance: none;
-        -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.5)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 0.7rem center;
-        cursor: pointer;
-        transition: border-color 0.2s;
-    }
-
-    .section-filter select:focus {
-        outline: none;
-        border-color: var(--blue-lt);
-        box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-    }
-
-    .section-filter select option {
-        background: #0a1a4a;
-        color: #fff;
-    }
-
-    /* ── TOGGLE CONTROLS ── */
-    .toggle-controls {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-    }
-
-    .btn-toggle-all {
-        background: rgba(255,255,255,0.10);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        color: rgba(255,255,255,0.75);
-        font-size: 0.78rem;
-        font-weight: 600;
-        padding: 0.38rem 0.75rem;
-        cursor: pointer;
-        transition: background 0.18s, color 0.18s;
-        font-family: 'DM Sans', sans-serif;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .btn-toggle-all:hover {
-        background: rgba(255,255,255,0.18);
-        color: #fff;
-    }
-
-    /* ── SECTION BLOCK ── */
-    .section-block {
-        margin-bottom: 1.2rem;
-        animation: fadeUp 0.45s ease both;
-    }
-
-    /* ── SECTION HEADER ── */
-    .section-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(29,78,216,0.50);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-radius: 14px 14px 0 0;
-        border: 1px solid rgba(59,130,246,0.3);
-        border-bottom: none;
-        padding: 0.9rem 1.25rem;
-        cursor: pointer;
-        user-select: none;
-        transition: background 0.2s;
-    }
-
-    .section-header:hover { background: rgba(29,78,216,0.65); }
-
-    .section-header.collapsed {
-        border-radius: 14px;
-        border-bottom: 1px solid rgba(59,130,246,0.3);
-    }
-
-    .section-header-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .section-icon {
-        width: 36px; height: 36px;
-        border-radius: 10px;
-        background: rgba(255,255,255,0.15);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.95rem;
-    }
-
-    .section-title {
-        font-family: 'Syne', sans-serif;
-        font-size: 1rem;
-        font-weight: 700;
-        color: #fff;
-        margin: 0;
-    }
-
-    .section-subtitle {
-        font-size: 0.73rem;
-        color: rgba(255,255,255,0.55);
-        margin: 0;
-    }
-
-    .section-header-right {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .section-count {
-        background: rgba(255,255,255,0.18);
-        border-radius: 20px;
-        padding: 0.2rem 0.75rem;
-        font-size: 0.78rem;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: 0.3px;
-    }
-
-    .chevron-icon {
-        font-size: 0.8rem;
-        color: rgba(255,255,255,0.7);
-        transition: transform 0.3s ease;
-    }
-
-    .chevron-icon.rotated { transform: rotate(-90deg); }
-
-    /* ── SECTION BODY ── */
-    .section-body {
-        background: rgba(8,20,60,0.35);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-radius: 0 0 14px 14px;
-        border: 1px solid rgba(59,130,246,0.3);
-        border-top: none;
-        overflow: hidden;
-        transition: max-height 0.35s ease, opacity 0.3s ease;
-        max-height: 2000px;
-        opacity: 1;
-    }
-
-    .section-body.collapsed {
-        max-height: 0;
-        opacity: 0;
-    }
-
-    /* ── TABLE ── */
-    .table {
-        color: #fff;
-        margin: 0;
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        table-layout: fixed;
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     }
     .section-body.collapsed { max-height: 0; opacity: 0; }
 
+    /* ── TABLE ── */
     .table { color: #fff; margin: 0; border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; }
     .table colgroup col:nth-child(1) { width: 5%; }
     .table colgroup col:nth-child(2) { width: 22%; }
     .table colgroup col:nth-child(3) { width: 35%; }
     .table colgroup col:nth-child(4) { width: 38%; }
 
-    .table colgroup col:nth-child(1) { width: 5%; }
-    .table colgroup col:nth-child(2) { width: 22%; }
-    .table colgroup col:nth-child(3) { width: 35%; }
-    .table colgroup col:nth-child(4) { width: 38%; }
-
     .table thead th {
-<<<<<<< HEAD
         background: rgba(15,40,100,0.55); color: rgba(255,255,255,0.65);
         font-family: 'DM Sans', sans-serif; font-size: 0.74rem; font-weight: 600;
         text-transform: uppercase; letter-spacing: 1px;
         border: none; padding: 0.65rem 1rem; vertical-align: middle;
-=======
-        background: rgba(15,40,100,0.55);
-        color: rgba(255,255,255,0.65);
-        font-family: 'DM Sans', sans-serif;
-        font-size: 0.74rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border: none;
-        padding: 0.65rem 1rem;
-        vertical-align: middle;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .table thead th:nth-child(1) { text-align: center; }
     .table thead th:nth-child(2) { text-align: left; }
     .table thead th:nth-child(3) { text-align: left; }
     .table thead th:nth-child(4) { text-align: center; }
 
-<<<<<<< HEAD
     .table tbody tr { transition: background 0.18s; }
     .table tbody tr:hover td { background: rgba(59,130,246,0.12); }
 
@@ -565,29 +303,6 @@ while($row = $result->fetch_assoc()){
         color: rgba(255,255,255,0.92); background: transparent;
         text-shadow: 0 1px 4px rgba(0,0,0,0.4);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-=======
-    .table thead th:nth-child(1) { text-align: center; }
-    .table thead th:nth-child(2) { text-align: left; }
-    .table thead th:nth-child(3) { text-align: left; }
-    .table thead th:nth-child(4) { text-align: center; }
-
-    .table tbody tr { transition: background 0.18s; }
-
-    .table tbody tr:hover td { background: rgba(59,130,246,0.12); }
-
-    .table tbody td {
-        border-color: rgba(255,255,255,0.06);
-        padding: 0.8rem 1rem;
-        vertical-align: middle;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: rgba(255,255,255,0.92);
-        background: transparent;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     }
     .table tbody td:nth-child(1) { text-align: center; }
     .table tbody td:nth-child(2) { text-align: left; }
@@ -595,29 +310,10 @@ while($row = $result->fetch_assoc()){
     .table tbody td:nth-child(4) { text-align: center; }
     .table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
 
-<<<<<<< HEAD
     .row-num { color: rgba(255,255,255,0.40) !important; font-size: 0.8rem !important; font-weight: 400 !important; }
     .action-cell { white-space: nowrap !important; }
     .action-cell .btn { margin: 0 2px; }
 
-=======
-    .table tbody td:nth-child(1) { text-align: center; }
-    .table tbody td:nth-child(2) { text-align: left; }
-    .table tbody td:nth-child(3) { text-align: left; }
-    .table tbody td:nth-child(4) { text-align: center; }
-
-    .table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
-
-    .row-num {
-        color: rgba(255,255,255,0.40) !important;
-        font-size: 0.8rem !important;
-        font-weight: 400 !important;
-    }
-
-    .action-cell { white-space: nowrap !important; }
-    .action-cell .btn { margin: 0 2px; }
-
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     .id-pill {
         display: inline-block; background: rgba(37,99,235,0.2);
         border: 1px solid rgba(59,130,246,0.3); border-radius: 6px;
@@ -625,25 +321,13 @@ while($row = $result->fetch_assoc()){
         color: #93C5FD; letter-spacing: 0.5px; font-family: 'Syne', sans-serif;
     }
 
-<<<<<<< HEAD
     .empty-state td { padding: 3rem 1rem !important; color: rgba(255,255,255,0.5) !important; font-style: italic; font-size: 0.9rem; text-align: center; }
 
-=======
-    .empty-state td {
-        padding: 3rem 1rem !important;
-        color: rgba(255,255,255,0.5) !important;
-        font-style: italic;
-        font-size: 0.9rem;
-        text-align: center;
-    }
-
     /* ── BUTTONS ── */
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     .btn {
         font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
         border-radius: 8px; padding: 0.38rem 0.85rem; border: none;
         transition: transform 0.18s ease, filter 0.18s ease;
-<<<<<<< HEAD
         display: inline-flex; align-items: center; gap: 5px; text-decoration: none;
     }
     .btn:hover  { transform: translateY(-2px); filter: brightness(1.12); }
@@ -652,6 +336,7 @@ while($row = $result->fetch_assoc()){
     .btn-danger   { background: linear-gradient(135deg,#b91c1c,#f87171); color:#fff; box-shadow: 0 3px 10px rgba(185,28,28,0.35); }
     .btn-success  { background: linear-gradient(135deg,#059669,#34d399); color:#fff; box-shadow: 0 3px 10px rgba(5,150,105,0.35); }
 
+    /* ── NO RESULTS ── */
     .no-results {
         background: rgba(8,20,60,0.40); backdrop-filter: blur(16px);
         border-radius: 14px; border: 1px solid var(--border);
@@ -659,36 +344,7 @@ while($row = $result->fetch_assoc()){
         color: rgba(255,255,255,0.5); font-style: italic; display: none;
     }
 
-=======
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        text-decoration: none;
-    }
-
-    .btn:hover   { transform: translateY(-2px); filter: brightness(1.12); }
-    .btn:active  { transform: translateY(0); }
-
-    .btn-warning  { background: linear-gradient(135deg,#b45309,#fbbf24); color:#fff; box-shadow: 0 3px 10px rgba(180,83,9,0.35); }
-    .btn-danger   { background: linear-gradient(135deg,#b91c1c,#f87171); color:#fff; box-shadow: 0 3px 10px rgba(185,28,28,0.35); }
-    .btn-secondary{ background: rgba(255,255,255,0.15); border: 1px solid var(--border); color:#fff; }
-    .btn-success  { background: linear-gradient(135deg,#059669,#34d399); color:#fff; box-shadow: 0 3px 10px rgba(5,150,105,0.35); }
-
-    /* ── NO RESULTS ── */
-    .no-results {
-        background: rgba(8,20,60,0.40);
-        backdrop-filter: blur(16px);
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        padding: 3rem 1rem;
-        text-align: center;
-        color: rgba(255,255,255,0.5);
-        font-style: italic;
-        display: none;
-    }
-
     /* ── ANIMATIONS ── */
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     @keyframes fadeUp {
         from { opacity: 0; transform: translateY(28px); }
         to   { opacity: 1; transform: translateY(0); }
@@ -703,23 +359,18 @@ while($row = $result->fetch_assoc()){
 </head>
 <body>
 
-<!-- ── NAVBAR ── -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container d-flex align-items-center justify-content-between">
-
-        <!-- Left: Brand -->
-        <span class="navbar-brand d-flex align-items-center">
-            <img src="../img/icas_logo.jpeg" alt="Logo">
-            Attendance System
-        </span>
-
-        <!-- Right: Back to Dashboard button -->
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="#">
+            <img src="../img/icas_logo.jpeg" alt="Logo" class="brand-logo">
+            <span class="brand-name">Attendance <span>System</span></span>
+        </a>
         <a href="dashboard.php" class="btn-nav-back">
             <i class="fa fa-arrow-left"></i> Back to Dashboard
         </a>
-
     </div>
-</nav>
+</header>
 
 <div class="main-wrap">
 
@@ -759,14 +410,6 @@ while($row = $result->fetch_assoc()){
 
     <!-- Toolbar -->
     <div class="toolbar anim d3">
-<<<<<<< HEAD
-=======
-        <!-- ✅ MOVED: Back to Dashboard button now in toolbar (top) -->
-        <a href="dashboard.php" class="btn btn-secondary">
-            <i class="fa fa-arrow-left"></i> Back to Dashboard
-        </a>
-
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
         <div class="search-wrap">
             <i class="fa fa-search"></i>
             <input type="text" id="searchInput" placeholder="Search students…" onkeyup="filterStudents()">
@@ -790,10 +433,6 @@ while($row = $result->fetch_assoc()){
             </button>
         </div>
 
-<<<<<<< HEAD
-=======
-        <!-- Register New Student stays in toolbar too -->
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
         <a href="register.php" class="btn btn-success">
             <i class="fa fa-user-plus"></i> Register New Student
         </a>
@@ -805,18 +444,9 @@ while($row = $result->fetch_assoc()){
             <?php foreach($sections as $sectionName => $students): ?>
                 <div class="section-block" data-section="<?= htmlspecialchars($sectionName) ?>">
 
-<<<<<<< HEAD
                     <div class="section-header" onclick="toggleSection(this)">
                         <div class="section-header-left">
                             <div class="section-icon"><i class="fa fa-chalkboard-user"></i></div>
-=======
-                    <!-- Section Header (clickable) -->
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <div class="section-header-left">
-                            <div class="section-icon">
-                                <i class="fa fa-chalkboard-user"></i>
-                            </div>
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
                             <div>
                                 <p class="section-title"><?= htmlspecialchars($sectionName) ?></p>
                                 <p class="section-subtitle">Click to expand or collapse</p>
@@ -831,10 +461,6 @@ while($row = $result->fetch_assoc()){
                         </div>
                     </div>
 
-<<<<<<< HEAD
-=======
-                    <!-- Section Body -->
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
                     <div class="section-body">
                         <div class="table-responsive">
                             <table class="table section-table">
@@ -853,14 +479,7 @@ while($row = $result->fetch_assoc()){
                                     </tr>
                                 </thead>
                                 <tbody>
-<<<<<<< HEAD
                                     <?php $i = 1; foreach($students as $row): ?>
-=======
-                                    <?php
-                                    $i = 1;
-                                    foreach($students as $row):
-                                    ?>
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
                                     <tr class="student-row"
                                         data-name="<?= strtolower(htmlspecialchars($row['name'])) ?>"
                                         data-id="<?= strtolower(htmlspecialchars($row['student_id'])) ?>">
@@ -893,10 +512,6 @@ while($row = $result->fetch_assoc()){
         <?php endif; ?>
     </div>
 
-<<<<<<< HEAD
-=======
-    <!-- No search results message -->
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     <div class="no-results" id="noResults">
         <i class="fa fa-search fa-2x mb-2" style="display:block; margin: 0 auto 0.5rem;"></i>
         No students found matching your search.
@@ -909,10 +524,6 @@ function toggleSection(header) {
     const body    = header.nextElementSibling;
     const chevron = header.querySelector('.chevron-icon');
     const isOpen  = !body.classList.contains('collapsed');
-<<<<<<< HEAD
-=======
-
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     if(isOpen){
         body.classList.add('collapsed');
         header.classList.add('collapsed');
@@ -953,44 +564,24 @@ function filterStudents() {
             block.style.display = 'none';
             return;
         }
-<<<<<<< HEAD
-=======
-
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
         let hasMatch = false;
         block.querySelectorAll('.student-row').forEach(row => {
             const match = !query || row.dataset.name.includes(query) || row.dataset.id.includes(query);
             row.style.display = match ? '' : 'none';
             if(match) hasMatch = true;
         });
-<<<<<<< HEAD
         block.style.display = hasMatch ? '' : 'none';
-=======
-
-        block.style.display = hasMatch ? '' : 'none';
-
-        // Auto-expand matching sections when searching
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
         if(query && hasMatch){
             block.querySelector('.section-body').classList.remove('collapsed');
             block.querySelector('.section-header').classList.remove('collapsed');
             block.querySelector('.chevron-icon').classList.remove('rotated');
         }
     });
-<<<<<<< HEAD
-=======
-
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     checkNoResults();
 }
 
 function checkNoResults() {
-<<<<<<< HEAD
     const anyVisible = [...document.querySelectorAll('.section-block')].some(b => b.style.display !== 'none');
-=======
-    const anyVisible = [...document.querySelectorAll('.section-block')]
-        .some(b => b.style.display !== 'none');
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
     document.getElementById('noResults').style.display = anyVisible ? 'none' : 'block';
 }
 </script>

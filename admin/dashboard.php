@@ -7,23 +7,15 @@ if (!isset($_SESSION['admin'])) {
     exit();
 }
 
-<<<<<<< HEAD
-=======
-// ✅ Disable caching
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
+// Regenerate session ID on each dashboard load to prevent fixation
+session_regenerate_id(true);
+
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 header("Expires: Sat, 01 Jan 2000 00:00:00 GMT");
 
-<<<<<<< HEAD
 $students   = $conn->query("SELECT * FROM students")->num_rows;
-=======
-// 📊 Queries
-$students = $conn->query("SELECT * FROM students")->num_rows;
-
-// ✅ FIXED: Count only TODAY's attendance records
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
 $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE()")->num_rows;
 ?>
 <!DOCTYPE html>
@@ -40,19 +32,27 @@ $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE(
 
 <script>
 (function () {
-    history.pushState({ page: 'dashboard' }, '', window.location.href);
+    // ── 1. FLOOD HISTORY so the back button has nowhere to go ──
+    // Push many copies of this page so clicking Back just stays here
+    for (var i = 0; i < 10; i++) {
+        history.pushState({ page: 'dashboard', i: i }, '', window.location.href);
+    }
 
-    window.addEventListener('popstate', function () {
+    // ── 2. INTERCEPT every popstate (back/forward press) ──
+    window.addEventListener('popstate', function (e) {
+        // Immediately push again so we never actually leave
         history.pushState({ page: 'dashboard' }, '', window.location.href);
         verifySession();
     });
 
+    // ── 3. CHECK SESSION on tab restore (bfcache) ──
     window.addEventListener('pageshow', function (e) {
         if (e.persisted) {
             verifySession();
         }
     });
 
+    // ── 4. CHECK on back_forward navigation type ──
     window.addEventListener('DOMContentLoaded', function () {
         try {
             var nav = performance.getEntriesByType('navigation');
@@ -62,9 +62,15 @@ $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE(
         } catch (e) {}
     });
 
+    // ── 5. CHECK on full page load ──
     window.addEventListener('load', function () {
         verifySession();
     });
+
+    // ── 6. POLL SESSION every 30 seconds ──
+    setInterval(function () {
+        verifySession();
+    }, 30000);
 
     function verifySession() {
         fetch('check_session.php?_=' + Date.now(), {
@@ -89,6 +95,7 @@ $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE(
         var el = document.getElementById('session-overlay');
         if (el) el.classList.add('show');
         setTimeout(function () {
+            // Replace so the user truly cannot go back
             window.location.replace('../index.php');
         }, 3000);
     }
@@ -391,10 +398,6 @@ body > * { position: relative; z-index: 1; }
                 <div>
                     <div class="stat-label">Today's Attendance</div>
                     <div class="stat-number"><?= $attendance ?></div>
-<<<<<<< HEAD
-=======
-                    <!-- ✅ FIXED: Updated label to reflect today only -->
->>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
                     <div class="stat-sub">Logs recorded today</div>
                 </div>
             </div>
