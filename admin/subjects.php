@@ -172,7 +172,7 @@ body > * { position: relative; z-index: 1; }
 ════════════════════════════════ */
 .wrap {
     max-width: 1280px; margin: 0 auto;
-    padding: 2.5rem 1.5rem 4rem;
+    padding: 1.5rem 1.5rem 4rem;
 }
 
 /* ════════════════════════════════
@@ -181,7 +181,7 @@ body > * { position: relative; z-index: 1; }
 .hero {
     display: flex; align-items: flex-end;
     justify-content: space-between; flex-wrap: wrap;
-    gap: 1.5rem; margin-bottom: 2.5rem;
+    gap: 1rem; margin-bottom: 1.2rem;
     animation: riseUp 0.6s cubic-bezier(0.22,1,0.36,1) both;
 }
 
@@ -244,7 +244,7 @@ body > * { position: relative; z-index: 1; }
 ════════════════════════════════ */
 .toolbar {
     display: flex; align-items: center; gap: 1rem;
-    margin-bottom: 2rem; flex-wrap: wrap;
+    margin-bottom: 1.2rem; flex-wrap: wrap;
     animation: riseUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.08s both;
 }
 
@@ -286,7 +286,7 @@ body > * { position: relative; z-index: 1; }
    SUBJECT BLOCKS
 ════════════════════════════════ */
 .subject-block {
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
     animation: riseUp 0.65s cubic-bezier(0.22,1,0.36,1) both;
 }
 
@@ -327,95 +327,110 @@ body > * { position: relative; z-index: 1; }
 }
 
 /* ════════════════════════════════
-   CARDS GRID
+   VERTICAL TABLE
 ════════════════════════════════ */
 .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
-}
-
-/* ── SCHEDULE CARD ── */
-.sched-card {
-    background: rgba(8,18,55,0.50);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: 18px; overflow: hidden;
-    position: relative;
-    transition: transform 0.26s cubic-bezier(0.22,1,0.36,1),
-                box-shadow 0.26s ease, border-color 0.26s ease;
 }
 
+/* Table header */
+.table-head-row {
+    display: grid;
+    grid-template-columns: 1.4fr 2fr 2fr 1fr;
+    background: rgba(10,22,65,0.80);
+    backdrop-filter: blur(12px);
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.table-head-row span {
+    font-size: 0.67rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.3px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── SCHEDULE ROW ── */
+.sched-card {
+    background: rgba(8,18,55,0.42);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border2);
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.4fr 2fr 2fr 1fr;
+    align-items: center;
+    padding: 0.8rem 1.25rem;
+    transition: background 0.2s ease;
+    gap: 0.5rem;
+}
+
+.sched-card:last-child { border-bottom: none; }
+
+/* left accent bar */
 .sched-card::before {
     content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(155deg, rgba(255,255,255,0.045) 0%, transparent 55%);
-    pointer-events: none; border-radius: inherit;
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--accent-a), var(--accent-b));
 }
 
-.sched-card:hover {
-    transform: translateY(-5px) scale(1.012);
-    box-shadow: 0 22px 50px rgba(0,0,0,0.45), 0 0 0 1px rgba(59,130,246,0.22);
-    border-color: rgba(59,130,246,0.3);
-}
+.sched-card:hover { background: rgba(59,130,246,0.09); }
 
-.card-stripe {
-    height: 3px;
-    background: linear-gradient(to right, var(--accent-a), var(--accent-b));
-}
+/* even row tint */
+.sched-card:nth-child(even) { background: rgba(255,255,255,0.025); }
+.sched-card:nth-child(even):hover { background: rgba(59,130,246,0.09); }
 
-.card-head {
-    padding: 0.95rem 1rem 0.7rem;
-    display: flex; align-items: center;
-    justify-content: space-between; gap: 0.5rem;
-}
-
+/* Section cell */
 .section-badge {
-    display: inline-flex; align-items: center; gap: 7px;
-    font-size: 0.83rem; font-weight: 800;
-    letter-spacing: 0.3px; color: #fff;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.86rem; font-weight: 800;
+    letter-spacing: 0.2px; color: #fff;
 }
 
 .s-icon {
-    width: 22px; height: 22px; border-radius: 6px;
+    width: 28px; height: 28px; border-radius: 8px;
     background: var(--glass); border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.6rem; color: var(--muted);
-}
-
-.card-actions { display: flex; gap: 5px; }
-
-.card-body-inner {
-    padding: 0 1rem 1.05rem;
-    display: flex; flex-direction: column; gap: 0.6rem;
+    font-size: 0.62rem; color: var(--muted); flex-shrink: 0;
 }
 
 /* Day chip */
 .day-chip {
     display: inline-flex; align-items: center; gap: 7px;
-    padding: 0.3rem 0.75rem; border-radius: 8px; border: 1px solid;
-    font-size: 0.8rem; font-weight: 700; letter-spacing: 0.3px;
+    padding: 0.28rem 0.75rem; border-radius: 8px; border: 1px solid;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.3px;
     width: fit-content;
 }
 
-.day-chip i { font-size: 0.68rem; }
+.day-chip i { font-size: 0.65rem; }
 
-/* Time row */
-.time-row { display: flex; align-items: center; gap: 9px; }
+/* Time cell */
+.time-row { display: flex; align-items: center; gap: 8px; }
 
 .time-icon {
-    width: 28px; height: 28px; border-radius: 8px;
+    width: 26px; height: 26px; border-radius: 7px;
     background: rgba(139,92,246,0.18);
     border: 1px solid rgba(139,92,246,0.3);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.65rem; color: #C4B5FD; flex-shrink: 0;
+    font-size: 0.62rem; color: #C4B5FD; flex-shrink: 0;
 }
 
 .time-text {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.87rem; font-weight: 600;
+    font-size: 0.83rem; font-weight: 600;
     color: #E9D5FF; letter-spacing: 0.3px;
+}
+
+/* Actions cell */
+.card-actions {
+    display: flex; gap: 5px;
+    justify-content: flex-end;
 }
 
 /* ════════════════════════════════
@@ -469,17 +484,6 @@ body > * { position: relative; z-index: 1; }
 }
 
 .btn-add:hover { transform: translateY(-2px); filter: brightness(1.1); color: #fff; }
-
-/* ════════════════════════════════
-   BOTTOM BAR
-════════════════════════════════ */
-.bottom-bar {
-    display: flex; align-items: center;
-    justify-content: space-between; flex-wrap: wrap;
-    gap: 0.75rem; margin-top: 2.5rem; padding-top: 1.5rem;
-    border-top: 1px solid var(--border2);
-    animation: riseUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.3s both;
-}
 
 /* ════════════════════════════════
    EMPTY STATE
@@ -547,14 +551,28 @@ body > * { position: relative; z-index: 1; }
         </div>
     </div>
 
-    <!-- TOOLBAR -->
+    <!-- ✅ TOOLBAR: Back to Dashboard moved here, alongside search and Add Subject -->
     <div class="toolbar">
+
+        <!-- ✅ MOVED: Back to Dashboard now at top left of toolbar -->
+        <a href="dashboard.php" class="btn-back">
+            <i class="fa fa-arrow-left"></i> Back to Dashboard
+        </a>
+
         <div class="search-box">
             <i class="fa fa-magnifying-glass s-icon"></i>
             <input type="text" id="searchInput"
                    placeholder="Search subject, section, or day…"
                    oninput="filterCards()" autocomplete="off">
         </div>
+
+        <!-- ✅ MOVED: Add Subject also promoted to toolbar (admin only) -->
+        <?php if(isset($_SESSION['admin'])): ?>
+        <a href="register_subject.php" class="btn-add">
+            <i class="fa fa-plus"></i> Add Subject
+        </a>
+        <?php endif; ?>
+
     </div>
 
     <!-- SUBJECT BLOCKS -->
@@ -577,6 +595,15 @@ body > * { position: relative; z-index: 1; }
         </div>
 
         <div class="cards-grid">
+
+            <!-- Table Header -->
+            <div class="table-head-row">
+                <span><i class="fa fa-layer-group" style="margin-right:6px;opacity:0.6;"></i>Section</span>
+                <span><i class="fa fa-calendar-days" style="margin-right:6px;opacity:0.6;"></i>Day</span>
+                <span><i class="fa fa-clock" style="margin-right:6px;opacity:0.6;"></i>Time</span>
+                <span style="text-align:right;">Actions</span>
+            </div>
+
             <?php foreach($rows as $row):
                 $section  = htmlspecialchars($row['section']);
                 $day      = htmlspecialchars($row['day']);
@@ -588,41 +615,46 @@ body > * { position: relative; z-index: 1; }
                  style="--accent-a:<?= $ac['a'] ?>; --accent-b:<?= $ac['b'] ?>;"
                  data-search="<?= strtolower($subjectName . ' ' . $row['section'] . ' ' . $row['day']) ?>">
 
-                <div class="card-stripe"></div>
-
-                <div class="card-head">
-                    <div class="section-badge">
-                        <div class="s-icon"><i class="fa fa-layer-group"></i></div>
-                        Section <?= $section ?>
-                    </div>
-                    <?php if(isset($_SESSION['admin'])): ?>
-                    <div class="card-actions">
-                        <a href="edit_subject.php?id=<?= $row['id'] ?>" class="btn-act btn-edit">
-                            <i class="fa fa-pen"></i> Edit
-                        </a>
-                        <a href="subjects.php?delete_id=<?= $row['id'] ?>"
-                           class="btn-act btn-del"
-                           onclick="return confirm('Delete this entry?');">
-                            <i class="fa fa-trash"></i>
-                        </a>
-                    </div>
-                    <?php endif; ?>
+                <!-- Section -->
+                <div class="section-badge">
+                    <div class="s-icon"><i class="fa fa-layer-group"></i></div>
+                    Section <?= $section ?>
                 </div>
 
-                <div class="card-body-inner">
+                <!-- Day -->
+                <div>
                     <div class="day-chip"
                          style="background:<?= $dc['bg'] ?>; border-color:<?= $dc['border'] ?>; color:<?= $dc['text'] ?>;">
                         <i class="fa fa-calendar-days"></i>
                         <?= $day ?>
                     </div>
-                    <div class="time-row">
-                        <div class="time-icon"><i class="fa fa-clock"></i></div>
-                        <span class="time-text"><?= $startFmt ?> &ndash; <?= $endFmt ?></span>
-                    </div>
                 </div>
+
+                <!-- Time -->
+                <div class="time-row">
+                    <div class="time-icon"><i class="fa fa-clock"></i></div>
+                    <span class="time-text"><?= $startFmt ?> &ndash; <?= $endFmt ?></span>
+                </div>
+
+                <!-- Actions -->
+                <?php if(isset($_SESSION['admin'])): ?>
+                <div class="card-actions">
+                    <a href="edit_subject.php?id=<?= $row['id'] ?>" class="btn-act btn-edit">
+                        <i class="fa fa-pen"></i> Edit
+                    </a>
+                    <a href="subjects.php?delete_id=<?= $row['id'] ?>"
+                       class="btn-act btn-del"
+                       onclick="return confirm('Delete this entry?');">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </div>
+                <?php else: ?>
+                <div></div>
+                <?php endif; ?>
 
             </div>
             <?php endforeach; ?>
+
         </div>
 
     </div>
@@ -634,18 +666,6 @@ body > * { position: relative; z-index: 1; }
         <p>No subjects registered yet.</p>
     </div>
     <?php endif; ?>
-
-    <!-- BOTTOM BAR -->
-    <div class="bottom-bar">
-        <a href="dashboard.php" class="btn-back">
-            <i class="fa fa-arrow-left"></i> Back to Dashboard
-        </a>
-        <?php if(isset($_SESSION['admin'])): ?>
-        <a href="register_subject.php" class="btn-add">
-            <i class="fa fa-plus"></i> Add Subject
-        </a>
-        <?php endif; ?>
-    </div>
 
 </div>
 

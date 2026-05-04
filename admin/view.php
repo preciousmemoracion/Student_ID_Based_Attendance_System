@@ -200,16 +200,16 @@ body > * { position: relative; z-index: 1; }
     font-size: 0.62rem; font-weight: 800;
 }
 
-.btn-logout {
+.btn-dashboard {
     display: inline-flex; align-items: center; gap: 6px;
-    background: var(--red-bg); border: 1px solid var(--red-br);
-    color: #FCA5A5; border-radius: 30px;
+    background: var(--glass); border: 1px solid var(--border);
+    color: rgba(255,255,255,0.80); border-radius: 30px;
     padding: 0.27rem 0.9rem;
     font-size: 0.78rem; font-weight: 700;
     text-decoration: none;
     transition: background 0.2s, transform 0.2s;
 }
-.btn-logout:hover { background: rgba(239,68,68,0.25); transform: scale(1.03); color: #fff; }
+.btn-dashboard:hover { background: rgba(255,255,255,0.12); transform: scale(1.03); color: #fff; }
 
 /* ════════════════════════════════
    MAIN
@@ -652,15 +652,9 @@ select.f-input option { background: #0d1a4a; color: #fff; }
             <img src="../img/icas_logo.jpeg" alt="Logo" class="brand-logo">
             <span class="brand-name">Attendance <em>System</em></span>
         </a>
-        <div class="topbar-right">
-            <div class="user-chip">
-                <div class="av"><?= strtoupper(substr($_SESSION['admin'], 0, 1)) ?></div>
-                <?= htmlspecialchars($_SESSION['admin']) ?>
-            </div>
-            <a href="logout.php" class="btn-logout">
-                <i class="fa fa-right-from-bracket"></i> Logout
-            </a>
-        </div>
+        <a href="dashboard.php" class="btn-dashboard">
+            <i class="fa fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 </header>
 
@@ -884,12 +878,7 @@ select.f-input option { background: #0d1a4a; color: #fff; }
     </div>
     <?php endif; ?>
 
-    <!-- ── BOTTOM BAR ── -->
-    <div class="bottom-bar">
-        <a href="dashboard.php" class="btn-back">
-            <i class="fa fa-arrow-left"></i> Back to Dashboard
-        </a>
-    </div>
+
 
 </div><!-- /wrap -->
 
