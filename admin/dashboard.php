@@ -7,12 +7,23 @@ if (!isset($_SESSION['admin'])) {
     exit();
 }
 
+<<<<<<< HEAD
+=======
+// ✅ Disable caching
+>>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 header("Expires: Sat, 01 Jan 2000 00:00:00 GMT");
 
+<<<<<<< HEAD
 $students   = $conn->query("SELECT * FROM students")->num_rows;
+=======
+// 📊 Queries
+$students = $conn->query("SELECT * FROM students")->num_rows;
+
+// ✅ FIXED: Count only TODAY's attendance records
+>>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
 $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE()")->num_rows;
 ?>
 <!DOCTYPE html>
@@ -380,6 +391,10 @@ body > * { position: relative; z-index: 1; }
                 <div>
                     <div class="stat-label">Today's Attendance</div>
                     <div class="stat-number"><?= $attendance ?></div>
+<<<<<<< HEAD
+=======
+                    <!-- ✅ FIXED: Updated label to reflect today only -->
+>>>>>>> 033ff7b94cb31061ad2ce7919af76424d76b41c5
                     <div class="stat-sub">Logs recorded today</div>
                 </div>
             </div>
