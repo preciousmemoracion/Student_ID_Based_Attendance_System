@@ -1,19 +1,26 @@
 <?php
 session_start();
-include "../db_connect.php";
 
-if (!isset($_SESSION['admin'])) {
+// ── SERVER-SIDE GUARD (first line of defense) ──
+if (!isset($_SESSION['admin']) || $_SESSION['admin'] !== true) {
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+    header("Pragma: no-cache");
     header("Location: ../index.php");
     exit();
 }
 
-// Regenerate session ID on each dashboard load to prevent fixation
+// Regenerate session ID to prevent fixation
 session_regenerate_id(true);
 
+// ── NUCLEAR CACHE KILL — browser must never cache this page ──
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 header("Expires: Sat, 01 Jan 2000 00:00:00 GMT");
+header("Surrogate-Control: no-store");
+header("Vary: *");
+
+include "../db_connect.php";
 
 $students   = $conn->query("SELECT * FROM students")->num_rows;
 $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE()")->num_rows;
@@ -32,51 +39,88 @@ $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE(
 
 <script>
 (function () {
-    // ── 1. FLOOD HISTORY so the back button has nowhere to go ──
-    // Push many copies of this page so clicking Back just stays here
-    for (var i = 0; i < 10; i++) {
-        history.pushState({ page: 'dashboard', i: i }, '', window.location.href);
-    }
+    'use strict';
 
-    // ── 2. INTERCEPT every popstate (back/forward press) ──
-    window.addEventListener('popstate', function (e) {
-        // Immediately push again so we never actually leave
-        history.pushState({ page: 'dashboard' }, '', window.location.href);
+    var DASHBOARD_URL = window.location.href;
+    var isRedirecting = false;
+    var FLOOD_COUNT   = 80;
+
+    // ── STEP 1: Replace the current history slot ──
+    // This overwrites whatever page was here before (e.g. index.php)
+    // so there is no original entry to fall back to.
+    try {
+        history.replaceState({ page: 'dashboard', i: 0 }, '', DASHBOARD_URL);
+    } catch(e) {}
+
+    // ── STEP 2: Flood the history stack ──
+    function floodHistory() {
+        try {
+            for (var i = 1; i <= FLOOD_COUNT; i++) {
+                history.pushState({ page: 'dashboard', i: i }, '', DASHBOARD_URL);
+            }
+        } catch(e) {}
+    }
+    floodHistory();
+
+    // ── STEP 3: Intercept every back/forward attempt ──
+    window.addEventListener('popstate', function () {
+        if (isRedirecting) return;
+        // Push immediately so the URL never changes
+        try { history.pushState({ page: 'dashboard' }, '', DASHBOARD_URL); } catch(e) {}
+        // Refill the buffer so it never drains
+        floodHistory();
+        // Always verify session on any navigation attempt
         verifySession();
     });
 
-    // ── 3. CHECK SESSION on tab restore (bfcache) ──
+    // ── STEP 4: Block bfcache page restoration ──
+    // When user clicks back and browser tries to show cached version
     window.addEventListener('pageshow', function (e) {
+        if (isRedirecting) return;
         if (e.persisted) {
+            // Page was restored from bfcache — verify immediately
+            floodHistory();
             verifySession();
         }
     });
 
-    // ── 4. CHECK on back_forward navigation type ──
+    // ── STEP 5: Re-verify on tab focus / visibility restore ──
+    document.addEventListener('visibilitychange', function () {
+        if (isRedirecting) return;
+        if (document.visibilityState === 'visible') {
+            floodHistory();
+            verifySession();
+        }
+    });
+
+    // ── STEP 6: Detect back_forward navigation type on load ──
     window.addEventListener('DOMContentLoaded', function () {
         try {
             var nav = performance.getEntriesByType('navigation');
             if (nav.length > 0 && nav[0].type === 'back_forward') {
+                floodHistory();
                 verifySession();
             }
         } catch (e) {}
     });
 
-    // ── 5. CHECK on full page load ──
+    // ── STEP 7: Verify on every full page load ──
     window.addEventListener('load', function () {
         verifySession();
     });
 
-    // ── 6. POLL SESSION every 30 seconds ──
+    // ── STEP 8: Poll every 20 seconds ──
     setInterval(function () {
-        verifySession();
-    }, 30000);
+        if (!isRedirecting) verifySession();
+    }, 20000);
 
+    // ── CORE: Session verification via fetch ──
     function verifySession() {
         fetch('check_session.php?_=' + Date.now(), {
             method: 'GET',
             cache: 'no-store',
-            credentials: 'same-origin'
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(function (r) {
             if (!r.ok) { showOverlay(); return null; }
@@ -87,23 +131,37 @@ $attendance = $conn->query("SELECT * FROM attendance WHERE DATE(date) = CURDATE(
             if (!data.loggedIn) showOverlay();
         })
         .catch(function () {
+            // Network error — show overlay to be safe
             showOverlay();
         });
     }
 
+    // ── OVERLAY + REDIRECT ──
     function showOverlay() {
+        if (isRedirecting) return;
+        isRedirecting = true;
+
+        // Freeze the page completely
+        document.body.style.pointerEvents = 'none';
+
         var el = document.getElementById('session-overlay');
         if (el) el.classList.add('show');
+
+        // Use replace() so the login page replaces this in history
+        // — user cannot press Back to return here after logout
         setTimeout(function () {
-            // Replace so the user truly cannot go back
             window.location.replace('../index.php');
         }, 3000);
     }
+
+    // Expose for countdown script below
+    window.__showOverlay = showOverlay;
 })();
 </script>
 
 <style>
-:root {
+    /* (keep your existing CSS exactly as-is — no changes needed) */
+    :root {
     --blue:    #2563EB;
     --blue-lt: #3B82F6;
     --green:   #059669;
@@ -136,8 +194,6 @@ body::before {
 }
 
 body > * { position: relative; z-index: 1; }
-
-/* ══ NAVBAR ══ */
 .navbar {
     background: rgba(8,20,60,0.60);
     backdrop-filter: blur(18px);
@@ -145,62 +201,49 @@ body > * { position: relative; z-index: 1; }
     border-bottom: 1px solid var(--border);
     padding: 0.65rem 0;
 }
-
 .navbar-brand {
     font-family: 'Syne', sans-serif;
     font-weight: 800; font-size: 1.15rem;
     letter-spacing: 0.4px; color: #fff !important; gap: 12px;
 }
-
 .navbar-brand img {
     width: 42px; height: 42px; object-fit: cover; border-radius: 50%;
     border: 2px solid rgba(255,255,255,0.25);
     box-shadow: 0 0 0 4px rgba(37,99,235,0.25);
 }
-
 .nav-welcome {
     font-size: 0.9rem; font-weight: 600;
     color: rgba(255,255,255,0.92);
     display: flex; align-items: center; gap: 7px;
 }
-
 .nav-welcome .dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--green-lt);
     box-shadow: 0 0 6px var(--green-lt);
     animation: pulse 2s infinite;
 }
-
 @keyframes pulse {
     0%,100% { opacity: 1; transform: scale(1); }
     50%      { opacity: 0.5; transform: scale(1.35); }
 }
-
-/* ══ MAIN ══ */
 .main-wrap { max-width: 1140px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
-
 .page-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 1.8rem; }
-
 .page-heading .icon-badge {
     width: 48px; height: 48px; border-radius: 14px;
     background: linear-gradient(135deg, var(--blue), var(--blue-lt));
     display: flex; align-items: center; justify-content: center;
     font-size: 1.2rem; box-shadow: 0 4px 18px rgba(37,99,235,0.45); flex-shrink: 0;
 }
-
 .page-heading h3 {
     font-family: 'Syne', sans-serif;
     font-size: 2rem !important; font-weight: 800 !important;
     letter-spacing: -0.3px; margin: 0; color: #fff;
     text-shadow: 0 2px 12px rgba(0,0,0,0.6);
 }
-
 .page-heading p {
     margin: 2px 0 0; font-size: 0.88rem; font-weight: 500;
     color: rgba(255,255,255,0.85); text-shadow: 0 1px 6px rgba(0,0,0,0.5);
 }
-
-/* ══ STAT CARDS ══ */
 .stat-card {
     border-radius: var(--radius); padding: 1.6rem 1.75rem;
     color: #fff; display: flex; align-items: center; gap: 1.25rem;
@@ -215,7 +258,6 @@ body > * { position: relative; z-index: 1; }
 .stat-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.45) !important; }
 .stat-card.blue  { background: linear-gradient(135deg,#1d4ed8,#3b82f6); box-shadow: 0 8px 28px rgba(29,78,216,0.45); }
 .stat-card.green { background: linear-gradient(135deg,#047857,#10b981); box-shadow: 0 8px 28px rgba(4,120,87,0.45); }
-
 .stat-icon {
     width: 58px; height: 58px; border-radius: 14px;
     background: rgba(255,255,255,0.18);
@@ -225,12 +267,8 @@ body > * { position: relative; z-index: 1; }
 .stat-label  { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 2px; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
 .stat-number { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 800; line-height: 1; letter-spacing: -1px; }
 .stat-sub    { font-size: 0.78rem; opacity: 0.88; margin-top: 3px; font-weight: 500; }
-
 .custom-divider { border: none; height: 1px; background: var(--border); margin: 1.75rem 0 1.5rem; }
-
-/* ══ BUTTONS ══ */
 .actions-wrap { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
-
 .btn {
     font-family: 'DM Sans', sans-serif; font-size: 0.84rem; font-weight: 600;
     border-radius: 10px; padding: 0.5rem 1.1rem; letter-spacing: 0.2px; border: none;
@@ -239,15 +277,12 @@ body > * { position: relative; z-index: 1; }
 }
 .btn:hover  { transform: translateY(-2px); filter: brightness(1.1); }
 .btn:active { transform: translateY(0); }
-
 .btn-success { background: linear-gradient(135deg,#059669,#34d399); box-shadow: 0 4px 14px rgba(5,150,105,0.35);  color:#fff; }
 .btn-primary { background: linear-gradient(135deg,#1d4ed8,#60a5fa); box-shadow: 0 4px 14px rgba(29,78,216,0.35);  color:#fff; }
 .btn-warning { background: linear-gradient(135deg,#b45309,#fbbf24); box-shadow: 0 4px 14px rgba(180,83,9,0.35);   color:#fff; }
 .btn-info    { background: linear-gradient(135deg,#0369a1,#38bdf8); box-shadow: 0 4px 14px rgba(3,105,161,0.35);  color:#fff; }
 .btn-danger  { background: linear-gradient(135deg,#b91c1c,#f87171); box-shadow: 0 4px 14px rgba(185,28,28,0.35);  color:#fff; }
 .btn-logout  { margin-left: auto; }
-
-/* ══ VALUE CARDS ══ */
 .value-card {
     background: rgba(8,20,60,0.35); backdrop-filter: blur(14px);
     border-radius: var(--radius); border: 1px solid var(--border);
@@ -262,7 +297,6 @@ body > * { position: relative; z-index: 1; }
     background: linear-gradient(90deg, transparent, var(--accent, #3B82F6), transparent);
 }
 .value-card:hover { transform: translateY(-5px); box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.28); }
-
 .value-card .v-icon {
     width: 56px; height: 56px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -277,15 +311,12 @@ body > * { position: relative; z-index: 1; }
     font-size: 0.92rem; color: rgba(255,255,255,0.88); line-height: 1.75; margin: 0;
     text-shadow: 0 1px 6px rgba(0,0,0,0.5); font-weight: 500; font-style: italic; letter-spacing: 0.2px;
 }
-
 .vc-blue { --accent: #60a5fa; }
 .vc-blue .v-icon { background: rgba(59,130,246,0.18); color: #60a5fa; }
 .vc-gold { --accent: #fbbf24; }
 .vc-gold .v-icon { background: rgba(251,191,36,0.18);  color: #fbbf24; }
 .vc-rose { --accent: #fb7185; }
 .vc-rose .v-icon { background: rgba(251,113,133,0.18); color: #fb7185; }
-
-/* ══ SESSION EXPIRED OVERLAY ══ */
 #session-overlay {
     display: none; position: fixed; inset: 0; z-index: 99999;
     background: rgba(3,8,30,0.96);
@@ -295,7 +326,6 @@ body > * { position: relative; z-index: 1; }
     gap: 1.1rem; text-align: center; padding: 2rem;
 }
 #session-overlay.show { display: flex; }
-
 #session-overlay .ov-icon {
     width: 80px; height: 80px; border-radius: 50%;
     background: rgba(220,38,38,0.18);
@@ -326,13 +356,10 @@ body > * { position: relative; z-index: 1; }
     transition: filter 0.2s, transform 0.2s;
 }
 #session-overlay a:hover { filter: brightness(1.12); transform: translateY(-2px); color: #fff; }
-
-/* ══ ANIMATIONS ══ */
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(28px); }
     to   { opacity: 1; transform: translateY(0); }
 }
-
 .anim { animation: fadeUp 0.6s ease both; }
 .d1 { animation-delay: 0.05s; }
 .d2 { animation-delay: 0.15s; }
@@ -445,9 +472,8 @@ body > * { position: relative; z-index: 1; }
 </div>
 
 <script>
-// Countdown timer shown in the overlay
 (function () {
-    var overlay = document.getElementById('session-overlay');
+    var overlay    = document.getElementById('session-overlay');
     var countdownEl = document.getElementById('overlay-countdown');
     var observer = new MutationObserver(function () {
         if (overlay.classList.contains('show')) {

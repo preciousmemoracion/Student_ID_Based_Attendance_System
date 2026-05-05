@@ -69,7 +69,9 @@ while($row = $result->fetch_assoc()){
 
     body > * { position: relative; z-index: 1; }
 
-    /* ── TOPBAR (matches subjects.php) ── */
+    /* ════════════════════════════════
+       TOPBAR  — matches subjects.php
+    ════════════════════════════════ */
     .topbar {
         position: sticky; top: 0; z-index: 100;
         background: rgba(5,12,40,0.75);
@@ -80,7 +82,7 @@ while($row = $result->fetch_assoc()){
     }
 
     .topbar-inner {
-        max-width: 1100px; margin: 0 auto;
+        max-width: 1280px; margin: 0 auto;
         padding: 0 1.5rem;
         display: flex; align-items: center; justify-content: space-between;
         gap: 1rem;
@@ -94,14 +96,10 @@ while($row = $result->fetch_assoc()){
         box-shadow: 0 0 0 3px rgba(59,130,246,0.14), 0 4px 14px rgba(0,0,0,0.4);
     }
 
-    .brand-name {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1rem; font-weight: 800;
-        color: #fff; letter-spacing: -0.2px;
-    }
+    .brand-name { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: -0.2px; }
     .brand-name span { color: #60A5FA; }
 
-    .btn-nav-back {
+    .btn-back {
         display: inline-flex; align-items: center; gap: 8px;
         background: rgba(255,255,255,0.09);
         border: 1px solid var(--border); color: rgba(255,255,255,0.88);
@@ -111,12 +109,11 @@ while($row = $result->fetch_assoc()){
         text-decoration: none;
         transition: background 0.2s, transform 0.2s;
     }
-    .btn-nav-back:hover { background: rgba(255,255,255,0.14); transform: translateX(-3px); color: #fff; }
-    .btn-nav-back i { font-size: 0.78rem; }
+    .btn-back:hover { background: rgba(255,255,255,0.14); transform: translateX(-3px); color: #fff; }
 
     /* ── MAIN WRAP ── */
     .main-wrap {
-        max-width: 1100px;
+        max-width: 1280px;
         margin: 0 auto;
         padding: 2rem 1.25rem 3rem;
     }
@@ -366,7 +363,7 @@ while($row = $result->fetch_assoc()){
             <img src="../img/icas_logo.jpeg" alt="Logo" class="brand-logo">
             <span class="brand-name">Attendance <span>System</span></span>
         </a>
-        <a href="dashboard.php" class="btn-nav-back">
+        <a href="dashboard.php" class="btn-back">
             <i class="fa fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>

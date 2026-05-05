@@ -810,7 +810,7 @@ select.f-input option { background: #0d1a4a; color: #fff; }
     <div class="empty-state">
         <i class="fa fa-inbox e-icon"></i>
         <h4>No records found</h4>
-        <p>No attendance was recorded for the selected date<?= ($selected_section || $search_name) ? " / filter" : "" ?>.</p>
+        <p>No attendance was recorded for the selected date / section / student<?= ($selected_section || $search_name) ? " / filter" : "" ?>.</p>
     </div>
     <?php endif; ?>
 

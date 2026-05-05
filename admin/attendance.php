@@ -127,7 +127,7 @@ if(isset($_POST['record'])){
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
 /* ════════════════════════════════
@@ -138,12 +138,15 @@ if(isset($_POST['record'])){
     --blue-lt:   #3B82F6;
     --blue-glow: rgba(37,99,235,0.45);
     --green:     #059669;
+    --green-lt:  #10B981;
     --amber:     #D97706;
     --red:       #DC2626;
     --cyan:      #0891B2;
-    --border:    rgba(255,255,255,0.12);
-    --muted:     rgba(255,255,255,0.52);
+    --border:    rgba(255,255,255,0.10);
+    --border2:   rgba(255,255,255,0.12);
+    --muted:     rgba(255,255,255,0.48);
     --surface:   rgba(8,18,55,0.58);
+    --glass:     rgba(255,255,255,0.055);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -152,13 +155,12 @@ body {
     min-height: 100vh;
     font-family: 'Sora', sans-serif;
     background: url('../img/icas.jpeg') no-repeat center center / cover fixed;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     overflow-x: hidden;
 }
 
-/* Layered overlay */
 body::before {
     content: '';
     position: fixed; inset: 0;
@@ -172,6 +174,75 @@ body::before {
 body > * { position: relative; z-index: 1; }
 
 /* ════════════════════════════════
+   TOPBAR  (matches subjects.php)
+════════════════════════════════ */
+.topbar {
+    position: sticky; top: 0; z-index: 100;
+    width: 100%;
+    background: rgba(5,12,40,0.75);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 0;
+}
+
+.topbar-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem;
+}
+
+.brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+
+.brand-logo {
+    width: 40px; height: 40px; border-radius: 12px; object-fit: cover;
+    border: 1.5px solid rgba(59,130,246,0.45);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.14), 0 4px 14px rgba(0,0,0,0.4);
+}
+
+.brand-name { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: -0.2px; font-family: 'Outfit', sans-serif; }
+.brand-name span { color: #60A5FA; }
+
+.online-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green-lt);
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.25);
+    animation: breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.5; transform:scale(1.45); }
+}
+
+.btn-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.09);
+    border: 1px solid var(--border2); color: rgba(255,255,255,0.88);
+    border-radius: 12px; padding: 0.38rem 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem; font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.btn-back:hover { background: rgba(255,255,255,0.14); transform: translateX(-3px); color: #fff; }
+
+/* ════════════════════════════════
+   PAGE CONTENT WRAPPER
+════════════════════════════════ */
+.page-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem 3rem;
+    width: 100%;
+}
+
+/* ════════════════════════════════
    CARD
 ════════════════════════════════ */
 .panel {
@@ -179,14 +250,13 @@ body > * { position: relative; z-index: 1; }
     background: var(--surface);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border2);
     border-radius: 24px;
     overflow: hidden;
     box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
     animation: slideUp 0.65s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-/* Shimmer top edge */
 .panel::before {
     content: '';
     display: block; height: 1px;
@@ -210,7 +280,6 @@ body > * { position: relative; z-index: 1; }
     position: relative; overflow: hidden;
 }
 
-/* Glow blob */
 .panel-head::after {
     content: '';
     position: absolute; top: -40px; right: -30px;
@@ -240,7 +309,6 @@ body > * { position: relative; z-index: 1; }
     margin-top: 3px; letter-spacing: 0.2px;
 }
 
-/* Date-time pill */
 .datetime-pill {
     margin-left: auto; flex-shrink: 0;
     background: rgba(255,255,255,0.07);
@@ -285,29 +353,16 @@ body > * { position: relative; z-index: 1; }
 
 .toast-msg .t-text { color: #fff; line-height: 1.45; }
 
-/* Variants */
-.toast-success {
-    background: rgba(5,150,105,0.18);
-    border-color: rgba(16,185,129,0.38);
-}
+.toast-success { background: rgba(5,150,105,0.18); border-color: rgba(16,185,129,0.38); }
 .toast-success .t-icon { background: rgba(16,185,129,0.25); color: #34D399; }
 
-.toast-warning {
-    background: rgba(217,119,6,0.18);
-    border-color: rgba(251,191,36,0.38);
-}
+.toast-warning { background: rgba(217,119,6,0.18); border-color: rgba(251,191,36,0.38); }
 .toast-warning .t-icon { background: rgba(251,191,36,0.2); color: #FCD34D; }
 
-.toast-error {
-    background: rgba(220,38,38,0.18);
-    border-color: rgba(248,113,113,0.38);
-}
+.toast-error { background: rgba(220,38,38,0.18); border-color: rgba(248,113,113,0.38); }
 .toast-error .t-icon { background: rgba(239,68,68,0.2); color: #FCA5A5; }
 
-.toast-info {
-    background: rgba(8,145,178,0.18);
-    border-color: rgba(34,211,238,0.38);
-}
+.toast-info { background: rgba(8,145,178,0.18); border-color: rgba(34,211,238,0.38); }
 .toast-info .t-icon { background: rgba(34,211,238,0.2); color: #67E8F9; }
 
 /* ════════════════════════════════
@@ -345,7 +400,6 @@ body > * { position: relative; z-index: 1; }
     -webkit-appearance: none; appearance: none;
 }
 
-/* Select arrow */
 select.field-input {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -354,9 +408,7 @@ select.field-input {
     padding-right: 2.2rem;
 }
 
-select.field-input option {
-    background: #0d1a4a; color: #fff;
-}
+select.field-input option { background: #0d1a4a; color: #fff; }
 
 .field-input::placeholder { color: rgba(255,255,255,0.25); }
 
@@ -369,7 +421,6 @@ select.field-input option {
 
 .field-wrap:focus-within .f-icon { color: #60A5FA; }
 
-/* ID field mono */
 input[name="student_id"].field-input {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.92rem; letter-spacing: 0.5px;
@@ -378,10 +429,7 @@ input[name="student_id"].field-input {
 /* ════════════════════════════════
    DIVIDER
 ════════════════════════════════ */
-.divider {
-    height: 1px; background: rgba(255,255,255,0.07);
-    margin: 1.4rem 0;
-}
+.divider { height: 1px; background: rgba(255,255,255,0.07); margin: 1.4rem 0; }
 
 /* ════════════════════════════════
    SUBMIT BUTTON
@@ -408,29 +456,9 @@ input[name="student_id"].field-input {
     transition: left 0.55s ease;
 }
 
-.btn-submit:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 10px 28px rgba(29,78,216,0.52);
-}
-
+.btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 10px 28px rgba(29,78,216,0.52); }
 .btn-submit:hover::before { left: 150%; }
 .btn-submit:active { transform: translateY(0); filter: brightness(0.96); }
-
-/* ════════════════════════════════
-   BACK LINK
-════════════════════════════════ */
-.back-link {
-    display: flex; align-items: center; justify-content: center; gap: 7px;
-    margin-top: 1.1rem;
-    color: var(--muted); font-size: 0.8rem; font-weight: 500;
-    text-decoration: none; transition: color 0.2s;
-    letter-spacing: 0.2px;
-}
-
-.back-link i { font-size: 0.72rem; transition: transform 0.2s; }
-.back-link:hover { color: rgba(255,255,255,0.85); }
-.back-link:hover i { transform: translateX(-3px); }
 
 /* ════════════════════════════════
    FOOTER NOTE
@@ -454,7 +482,6 @@ input[name="student_id"].field-input {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Stagger form rows */
 .field-group:nth-child(1) { animation: fadeIn 0.45s ease 0.20s both; }
 .field-group:nth-child(2) { animation: fadeIn 0.45s ease 0.28s both; }
 .field-group:nth-child(3) { animation: fadeIn 0.45s ease 0.36s both; }
@@ -464,111 +491,126 @@ input[name="student_id"].field-input {
 
 <body>
 
-<div class="panel">
-
-    <!-- HEADER -->
-    <div class="panel-head">
-        <div class="head-icon"><i class="fa fa-clipboard-user"></i></div>
-        <div class="head-text">
-            <div class="head-title">Record Attendance</div>
-            <div class="head-sub">Submit student attendance for today</div>
-        </div>
-        <div class="datetime-pill">
-            <span class="d-day"><?= strtoupper(date("l")) ?></span>
-            <span class="d-date"><?= date("M d, Y") ?></span>
-        </div>
-    </div>
-
-    <!-- BODY -->
-    <div class="panel-body">
-
-        <!-- TOAST -->
-        <?php if($message):
-            $icons = [
-                'success' => 'fa-circle-check',
-                'warning' => 'fa-triangle-exclamation',
-                'error'   => 'fa-circle-xmark',
-                'info'    => 'fa-circle-info',
-            ];
-            $icon = $icons[$msg_type] ?? 'fa-circle-info';
-        ?>
-        <div class="toast-msg toast-<?= $msg_type ?>">
-            <div class="t-icon"><i class="fa <?= $icon ?>"></i></div>
-            <div class="t-text"><?= $message ?></div>
-        </div>
-        <?php endif; ?>
-
-        <!-- FORM -->
-        <form method="POST">
-
-            <!-- Student ID -->
-            <div class="field-group">
-                <div class="field-label">
-                    <i class="fa fa-id-card"></i> Student ID
-                </div>
-                <div class="field-wrap">
-                    <i class="fa fa-hashtag f-icon"></i>
-                    <input type="text" name="student_id"
-                           class="field-input"
-                           placeholder="e.g. 2024-00123"
-                           required autocomplete="off">
-                </div>
-            </div>
-
-            <!-- Section -->
-            <div class="field-group">
-                <div class="field-label">
-                    <i class="fa fa-layer-group"></i> Section
-                </div>
-                <div class="field-wrap">
-                    <i class="fa fa-users f-icon"></i>
-                    <select name="section" class="field-input" required>
-                        <option value="">Select a section…</option>
-                        <?php while($sec = $section_result->fetch_assoc()): ?>
-                            <option value="<?= htmlspecialchars($sec['section']) ?>">
-                                <?= htmlspecialchars($sec['section']) ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Subject -->
-            <div class="field-group">
-                <div class="field-label">
-                    <i class="fa fa-book"></i> Subject
-                </div>
-                <div class="field-wrap">
-                    <i class="fa fa-book-open f-icon"></i>
-                    <select name="subject" class="field-input" required>
-                        <option value="">Select a subject…</option>
-                        <?php while($subj = $subject_result->fetch_assoc()): ?>
-                            <option value="<?= htmlspecialchars($subj['subject']) ?>">
-                                <?= htmlspecialchars($subj['subject']) ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <button type="submit" name="record" class="btn-submit">
-                <i class="fa fa-circle-check"></i>
-                Submit Attendance
-            </button>
-
-        </form>
-
-        <a href="dashboard.php" class="back-link">
-            <i class="fa fa-arrow-left"></i> Back to Dashboard
+<!-- ══ TOPBAR (matches subjects.php) ══ -->
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="#">
+            <img src="../img/icas_logo.jpeg" alt="Logo" class="brand-logo">
+            <span class="brand-name">Attendance <span>System</span></span>
         </a>
 
+        <a href="dashboard.php" class="btn-back">
+            <i class="fa fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
-</div>
+</header>
 
-<div class="foot-note">
-    <?= htmlspecialchars($_SESSION['admin']) ?> &nbsp;·&nbsp; Attendance System
+<!-- ══ PAGE CONTENT ══ -->
+<div class="page-content">
+
+    <div class="panel">
+
+        <!-- HEADER -->
+        <div class="panel-head">
+            <div class="head-icon"><i class="fa fa-clipboard-user"></i></div>
+            <div class="head-text">
+                <div class="head-title">Record Attendance</div>
+                <div class="head-sub">Submit student attendance for today</div>
+            </div>
+            <div class="datetime-pill">
+                <span class="d-day"><?= strtoupper(date("l")) ?></span>
+                <span class="d-date"><?= date("M d, Y") ?></span>
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="panel-body">
+
+            <!-- TOAST -->
+            <?php if($message):
+                $icons = [
+                    'success' => 'fa-circle-check',
+                    'warning' => 'fa-triangle-exclamation',
+                    'error'   => 'fa-circle-xmark',
+                    'info'    => 'fa-circle-info',
+                ];
+                $icon = $icons[$msg_type] ?? 'fa-circle-info';
+            ?>
+            <div class="toast-msg toast-<?= $msg_type ?>">
+                <div class="t-icon"><i class="fa <?= $icon ?>"></i></div>
+                <div class="t-text"><?= $message ?></div>
+            </div>
+            <?php endif; ?>
+
+            <!-- FORM -->
+            <form method="POST">
+
+                <!-- Student ID -->
+                <div class="field-group">
+                    <div class="field-label">
+                        <i class="fa fa-id-card"></i> Student ID
+                    </div>
+                    <div class="field-wrap">
+                        <i class="fa fa-hashtag f-icon"></i>
+                        <input type="text" name="student_id"
+                               class="field-input"
+                               placeholder="e.g. 2024-00123"
+                               required autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Section -->
+                <div class="field-group">
+                    <div class="field-label">
+                        <i class="fa fa-layer-group"></i> Section
+                    </div>
+                    <div class="field-wrap">
+                        <i class="fa fa-users f-icon"></i>
+                        <select name="section" class="field-input" required>
+                            <option value="">Select a section…</option>
+                            <?php while($sec = $section_result->fetch_assoc()): ?>
+                                <option value="<?= htmlspecialchars($sec['section']) ?>">
+                                    <?= htmlspecialchars($sec['section']) ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Subject -->
+                <div class="field-group">
+                    <div class="field-label">
+                        <i class="fa fa-book"></i> Subject
+                    </div>
+                    <div class="field-wrap">
+                        <i class="fa fa-book-open f-icon"></i>
+                        <select name="subject" class="field-input" required>
+                            <option value="">Select a subject…</option>
+                            <?php while($subj = $subject_result->fetch_assoc()): ?>
+                                <option value="<?= htmlspecialchars($subj['subject']) ?>">
+                                    <?= htmlspecialchars($subj['subject']) ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <button type="submit" name="record" class="btn-submit">
+                    <i class="fa fa-circle-check"></i>
+                    Submit Attendance
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+    <div class="foot-note">
+        <?= htmlspecialchars($_SESSION['admin']) ?> &nbsp;·&nbsp; Attendance System
+    </div>
+
 </div>
 
 </body>
