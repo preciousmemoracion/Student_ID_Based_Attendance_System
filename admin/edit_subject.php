@@ -1,70 +1,108 @@
-<?php 
+<?php
 include "../db_connect.php";
-
-if(session_status() === PHP_SESSION_NONE){
-    session_start();
-}
 
 if(!isset($_SESSION['admin'])){
     header("Location: ../index.php");
     exit();
 }
 
-if(!isset($_GET['id'])){
-    header("Location: students.php");
+if(!isset($_GET['id']) || !is_numeric($_GET['id'])){
+    header("Location: subjects.php");
     exit();
 }
 
-$student_id = $_GET['id'];
+$subject_id = (int) $_GET['id'];
 $alert_type = "";
 $alert_msg  = "";
 
-$stmt = $conn->prepare("SELECT * FROM students WHERE student_id = ?");
-$stmt->bind_param("s", $student_id);
+// ── FETCH SUBJECT ──
+$stmt = $conn->prepare("SELECT id, subject, section, day, start_time, end_time FROM subjects WHERE id = ?");
+$stmt->bind_param("i", $subject_id);
 $stmt->execute();
-$result = $stmt->get_result();
+$stmt->bind_result($db_id, $db_subject, $db_section, $db_day, $db_start_time, $db_end_time);
 
-if($result->num_rows == 0){
-    $alert_type = "danger";
-    $alert_msg  = "Student not found!";
-    $student    = null;
+if($stmt->fetch()){
+    $subject = [
+        'id'         => $db_id,
+        'subject'    => $db_subject,
+        'section'    => $db_section,
+        'day'        => $db_day,
+        'start_time' => $db_start_time,
+        'end_time'   => $db_end_time,
+    ];
 } else {
-    $student = $result->fetch_assoc();
+    $subject = null;
+}
+$stmt->close();
+
+if(!$subject){
+    $alert_type = "danger";
+    $alert_msg  = "Subject not found!";
 }
 
-if(isset($_POST['update'])){
-    $name    = trim($_POST['name']);
-    $section = trim($_POST['section']);
+// ── HANDLE UPDATE ──
+if(isset($_POST['update']) && $subject){
 
-    if(empty($name) || empty($section)){
+    $subject_name = trim($_POST['subject']    ?? '');
+    $section      = trim($_POST['section']    ?? '');
+    $day          = trim($_POST['day']        ?? '');
+    $start_time   = trim($_POST['start_time'] ?? '');
+    $end_time     = trim($_POST['end_time']   ?? '');
+
+    if(empty($subject_name) || empty($section)){
         $alert_type = "danger";
-        $alert_msg  = "All fields are required!";
+        $alert_msg  = "Subject name and section are required!";
     } else {
-        $stmt = $conn->prepare("UPDATE students SET name=?, section=? WHERE student_id=?");
-        $stmt->bind_param("sss", $name, $section, $student_id);
-        $stmt->execute();
-        $alert_type = "success";
-        $alert_msg  = "Student updated successfully!";
-        $student['name']    = $name;
-        $student['section'] = $section;
+        $upd = $conn->prepare("UPDATE subjects SET subject=?, section=?, day=?, start_time=?, end_time=? WHERE id=?");
+        $upd->bind_param("sssssi", $subject_name, $section, $day, $start_time, $end_time, $subject_id);
+
+        if($upd->execute()){
+            $alert_type = "success";
+            $alert_msg  = "Subject updated successfully!";
+            // Update local copy so form reflects saved values
+            $subject['subject']    = $subject_name;
+            $subject['section']    = $section;
+            $subject['day']        = $day;
+            $subject['start_time'] = $start_time;
+            $subject['end_time']   = $end_time;
+        } else {
+            $alert_type = "danger";
+            $alert_msg  = "Database error: " . $conn->error;
+        }
+        $upd->close();
     }
 }
+
+$sections_list = [
+    "1A","1B","1C",
+    "2A","2B","2C",
+    "3A","3B","3C",
+    "4A","4B","4C"
+];
+
+$days_list = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Monday/Wednesday/Friday",
+    "Tuesday/Thursday",
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Student</title>
+    <title>Edit Subject</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-    /* ════════════════════════════════
-       ROOT & BASE
-    ════════════════════════════════ */
     :root {
         --blue:     #2563EB;
         --blue-lt:  #3B82F6;
@@ -72,7 +110,6 @@ if(isset($_POST['update'])){
         --border2:  rgba(255,255,255,0.06);
         --muted:    rgba(255,255,255,0.88);
         --radius:   18px;
-
         --c-green:    #10B981;
         --c-green-bg: rgba(16,185,129,0.14);
         --c-green-br: rgba(16,185,129,0.35);
@@ -82,9 +119,6 @@ if(isset($_POST['update'])){
         --c-sky:      #38BDF8;
         --c-sky-bg:   rgba(56,189,248,0.14);
         --c-sky-br:   rgba(56,189,248,0.35);
-        --c-violet:   #8B5CF6;
-        --c-violet-bg:rgba(139,92,246,0.14);
-        --c-violet-br:rgba(139,92,246,0.35);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -110,9 +144,7 @@ if(isset($_POST['update'])){
 
     body > * { position: relative; z-index: 1; }
 
-    /* ════════════════════════════════
-       TOPBAR
-    ════════════════════════════════ */
+    /* ── TOPBAR ── */
     .topbar {
         position: sticky; top: 0; z-index: 200;
         background: rgba(5,12,40,0.75);
@@ -156,17 +188,13 @@ if(isset($_POST['update'])){
     .btn-nav-back:hover { background: rgba(255,255,255,0.14); transform: translateX(-3px); color: #fff; }
     .btn-nav-back i { font-size: 0.78rem; }
 
-    /* ════════════════════════════════
-       MAIN WRAP
-    ════════════════════════════════ */
+    /* ── WRAP ── */
     .wrap {
-        max-width: 600px; margin: 0 auto;
+        max-width: 620px; margin: 0 auto;
         padding: 2.5rem 1.5rem 5rem;
     }
 
-    /* ════════════════════════════════
-       PAGE HEADING
-    ════════════════════════════════ */
+    /* ── PAGE HEADING ── */
     .page-heading {
         display: flex; align-items: center; gap: 14px;
         margin-bottom: 1.8rem;
@@ -192,9 +220,7 @@ if(isset($_POST['update'])){
         color: var(--muted); text-shadow: 0 1px 6px rgba(0,0,0,0.5);
     }
 
-    /* ════════════════════════════════
-       ALERT
-    ════════════════════════════════ */
+    /* ── ALERT ── */
     .alert-bar {
         display: flex; align-items: center; gap: 10px;
         padding: 0.85rem 1.2rem; border-radius: 12px; border: 1px solid;
@@ -202,16 +228,10 @@ if(isset($_POST['update'])){
         animation: fadeUp 0.4s ease both;
     }
     .alert-bar i { font-size: 0.9rem; flex-shrink: 0; }
-    .alert-bar.success {
-        background: var(--c-green-bg); border-color: var(--c-green-br); color: #34D399;
-    }
-    .alert-bar.danger {
-        background: var(--c-red-bg); border-color: var(--c-red-br); color: #FCA5A5;
-    }
+    .alert-bar.success { background: var(--c-green-bg); border-color: var(--c-green-br); color: #34D399; }
+    .alert-bar.danger  { background: var(--c-red-bg);   border-color: var(--c-red-br);   color: #FCA5A5; }
 
-    /* ════════════════════════════════
-       FORM CARD
-    ════════════════════════════════ */
+    /* ── FORM CARD ── */
     .form-card {
         background: rgba(8,20,60,0.40);
         backdrop-filter: blur(16px);
@@ -223,7 +243,6 @@ if(isset($_POST['update'])){
         animation: fadeUp 0.5s ease 0.07s both;
     }
 
-    /* ── Card Header ── */
     .fc-head {
         padding: 1.2rem 1.5rem;
         display: flex; align-items: center; gap: 14px;
@@ -231,7 +250,6 @@ if(isset($_POST['update'])){
         border-bottom: 1px solid var(--border2);
         position: relative; overflow: hidden;
     }
-
     .fc-head::after {
         content: '';
         position: absolute; top: -50%; right: -20px;
@@ -244,7 +262,7 @@ if(isset($_POST['update'])){
         width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
         background: linear-gradient(135deg, #1D4ED8, #3B82F6);
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.05rem; color: #fff;
+        font-size: 1.1rem; color: #fff;
         box-shadow: 0 4px 14px rgba(29,78,216,0.4);
     }
 
@@ -258,10 +276,8 @@ if(isset($_POST['update'])){
         color: rgba(255,255,255,0.50);
     }
 
-    /* ── Card Body ── */
     .fc-body { padding: 1.5rem; }
 
-    /* ── ID Badge ── */
     .id-badge {
         display: flex; align-items: center; gap: 12px;
         background: rgba(255,255,255,0.05);
@@ -269,14 +285,12 @@ if(isset($_POST['update'])){
         border-radius: 12px; padding: 0.9rem 1.1rem;
         margin-bottom: 1.4rem;
     }
-
     .id-badge-icon {
         width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
         background: var(--c-sky-bg); border: 1px solid var(--c-sky-br);
         display: flex; align-items: center; justify-content: center;
         font-size: 0.85rem; color: var(--c-sky);
     }
-
     .id-badge-label {
         font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.40);
         text-transform: uppercase; letter-spacing: 0.9px;
@@ -286,8 +300,16 @@ if(isset($_POST['update'])){
         font-size: 0.95rem; font-weight: 600; color: #93C5FD; margin-top: 2px;
     }
 
-    /* ── Field Group ── */
-    .f-group { margin-bottom: 1.25rem; }
+    .fc-section-label {
+        font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.35);
+        text-transform: uppercase; letter-spacing: 1.1px;
+        display: flex; align-items: center; gap: 6px;
+        margin-bottom: 0.85rem; padding-bottom: 0.6rem;
+        border-bottom: 1px solid var(--border2);
+    }
+    .fc-section-label i { color: #60A5FA; font-size: 0.65rem; }
+
+    .f-group { margin-bottom: 1.2rem; }
 
     .f-label {
         display: flex; align-items: center; gap: 6px;
@@ -315,22 +337,34 @@ if(isset($_POST['update'])){
         display: flex; align-items: center; justify-content: center;
         border-right: 1px solid var(--border2);
         color: rgba(255,255,255,0.35); font-size: 0.82rem;
+        align-self: stretch;
     }
 
-    .f-input {
+    .f-input, .f-select {
         flex: 1; background: transparent; border: none; outline: none;
         color: #fff; font-family: 'DM Sans', sans-serif;
         font-size: 0.9rem; font-weight: 500; padding: 0.7rem 1rem;
     }
     .f-input::placeholder { color: rgba(255,255,255,0.25); }
 
-    /* ── Divider ── */
-    .fc-divider {
-        height: 1px; background: var(--border2);
-        margin: 1.5rem 0;
+    /* Style for time inputs */
+    .f-input[type="time"] {
+        color-scheme: dark;
     }
 
-    /* ── Buttons ── */
+    .f-select {
+        appearance: none; -webkit-appearance: none; cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 1rem center;
+        padding-right: 2.5rem;
+    }
+    .f-select option { background: #0a1a4a; color: #fff; }
+
+    .f-row { display: flex; gap: 1rem; }
+    .f-row .f-group { flex: 1; }
+
+    .fc-divider { height: 1px; background: var(--border2); margin: 1.5rem 0; }
+
     .btn-save {
         width: 100%;
         background: linear-gradient(135deg, #1D4ED8, #3B82F6);
@@ -360,42 +394,45 @@ if(isset($_POST['update'])){
     }
     .btn-cancel:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
-    /* ════════════════════════════════
-       ANIMATIONS
-    ════════════════════════════════ */
     @keyframes fadeUp {
         from { opacity: 0; transform: translateY(26px); }
         to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 500px) {
+        .f-row { flex-direction: column; gap: 0; }
+        .page-heading h3 { font-size: 1.5rem; }
     }
     </style>
 </head>
 <body>
 
-<!-- ── TOPBAR ── -->
+<!-- TOPBAR -->
 <header class="topbar">
     <div class="topbar-inner">
         <a class="brand" href="#">
             <img src="../img/icas_logo.jpeg" alt="Logo" class="brand-logo">
             <span class="brand-name">Attendance <span>System</span></span>
         </a>
-        <a href="students.php" class="btn-nav-back">
-            <i class="fa fa-arrow-left"></i> Back to Students
+        <a href="subjects.php" class="btn-nav-back">
+            <i class="fa fa-arrow-left"></i> Back to Subjects
         </a>
     </div>
 </header>
 
 <div class="wrap">
 
-    <!-- ── PAGE HEADING ── -->
+    <!-- PAGE HEADING -->
     <div class="page-heading">
         <div class="icon-badge"><i class="fa fa-pen-to-square"></i></div>
         <div>
-            <h3>Edit Student</h3>
-            <p>Modify student record details below</p>
+            <h3>Edit Subject</h3>
+            <p>Update subject details and section assignment</p>
         </div>
     </div>
 
-    <!-- ── ALERT ── -->
+    <!-- ALERT -->
     <?php if($alert_msg !== ""): ?>
     <div class="alert-bar <?= $alert_type ?>">
         <i class="fa <?= $alert_type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?>"></i>
@@ -403,55 +440,120 @@ if(isset($_POST['update'])){
     </div>
     <?php endif; ?>
 
-    <!-- ── FORM CARD ── -->
-    <?php if($student): ?>
+    <!-- FORM CARD -->
+    <?php if($subject): ?>
     <div class="form-card">
 
         <div class="fc-head">
-            <div class="fc-head-icon"><i class="fa fa-user-pen"></i></div>
+            <div class="fc-head-icon"><i class="fa fa-book-open"></i></div>
             <div class="fc-head-text">
-                <h4><?= htmlspecialchars($student['name']) ?></h4>
-                <p>Student record &nbsp;·&nbsp; Section <?= htmlspecialchars($student['section']) ?></p>
+                <h4><?= htmlspecialchars($subject['subject']) ?></h4>
+                <p>
+                    Section <?= htmlspecialchars($subject['section']) ?>
+                    &nbsp;·&nbsp; <?= htmlspecialchars($subject['day']) ?>
+                    &nbsp;·&nbsp; <?= htmlspecialchars($subject['start_time']) ?> – <?= htmlspecialchars($subject['end_time']) ?>
+                </p>
             </div>
         </div>
 
         <div class="fc-body">
 
-            <!-- ID Badge (read-only) -->
+            <!-- Subject ID (read-only) -->
             <div class="id-badge">
-                <div class="id-badge-icon"><i class="fa fa-id-badge"></i></div>
+                <div class="id-badge-icon"><i class="fa fa-hashtag"></i></div>
                 <div>
-                    <div class="id-badge-label">Student ID</div>
-                    <div class="id-badge-value"><?= htmlspecialchars($student['student_id']) ?></div>
+                    <div class="id-badge-label">Subject ID</div>
+                    <div class="id-badge-value"><?= htmlspecialchars($subject['id']) ?></div>
                 </div>
             </div>
 
             <form method="POST">
 
-                <!-- Full Name -->
+                <div class="fc-section-label">
+                    <i class="fa fa-circle-info"></i> Subject Information
+                </div>
+
+                <!-- Subject Name -->
                 <div class="f-group">
-                    <label class="f-label" for="nameField">
-                        <i class="fa fa-user"></i> Full Name
+                    <label class="f-label" for="subjectNameField">
+                        <i class="fa fa-book"></i> Subject Name
                     </label>
                     <div class="f-wrap">
-                        <div class="f-icon"><i class="fa fa-user"></i></div>
-                        <input id="nameField" type="text" name="name" class="f-input"
-                               value="<?= htmlspecialchars($student['name']) ?>"
-                               placeholder="Enter full name" required>
+                        <div class="f-icon"><i class="fa fa-book"></i></div>
+                        <input id="subjectNameField" type="text" name="subject" class="f-input"
+                               value="<?= htmlspecialchars($subject['subject']) ?>"
+                               placeholder="e.g. Mathematics, Science…" required>
                     </div>
                 </div>
 
-                <!-- Section -->
-                <div class="f-group">
-                    <label class="f-label" for="sectionField">
-                        <i class="fa fa-layer-group"></i> Section
-                    </label>
-                    <div class="f-wrap">
-                        <div class="f-icon"><i class="fa fa-layer-group"></i></div>
-                        <input id="sectionField" type="text" name="section" class="f-input"
-                               value="<?= htmlspecialchars($student['section']) ?>"
-                               placeholder="Enter section" required>
+                <!-- Section & Day -->
+                <div class="f-row">
+
+                    <div class="f-group">
+                        <label class="f-label" for="sectionField">
+                            <i class="fa fa-layer-group"></i> Section
+                        </label>
+                        <div class="f-wrap">
+                            <div class="f-icon"><i class="fa fa-layer-group"></i></div>
+                            <select id="sectionField" name="section" class="f-select" required>
+                                <option value="" disabled>Select section…</option>
+                                <?php foreach($sections_list as $sec): ?>
+                                    <option value="<?= $sec ?>" <?= ($subject['section'] == $sec) ? 'selected' : '' ?>>
+                                        Section <?= $sec ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
+
+                    <div class="f-group">
+                        <label class="f-label" for="dayField">
+                            <i class="fa fa-calendar-days"></i> Day
+                        </label>
+                        <div class="f-wrap">
+                            <div class="f-icon"><i class="fa fa-calendar-days"></i></div>
+                            <select id="dayField" name="day" class="f-select">
+                                <option value="" disabled>Select day…</option>
+                                <?php foreach($days_list as $d): ?>
+                                    <option value="<?= $d ?>" <?= ($subject['day'] == $d) ? 'selected' : '' ?>>
+                                        <?= $d ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="fc-section-label" style="margin-top:0.5rem;">
+                    <i class="fa fa-clock"></i> Schedule / Time
+                </div>
+
+                <!-- Start Time & End Time -->
+                <div class="f-row">
+
+                    <div class="f-group">
+                        <label class="f-label" for="startTimeField">
+                            <i class="fa fa-hourglass-start"></i> Start Time
+                        </label>
+                        <div class="f-wrap">
+                            <div class="f-icon"><i class="fa fa-hourglass-start"></i></div>
+                            <input id="startTimeField" type="time" name="start_time" class="f-input"
+                                   value="<?= htmlspecialchars($subject['start_time']) ?>">
+                        </div>
+                    </div>
+
+                    <div class="f-group">
+                        <label class="f-label" for="endTimeField">
+                            <i class="fa fa-hourglass-end"></i> End Time
+                        </label>
+                        <div class="f-wrap">
+                            <div class="f-icon"><i class="fa fa-hourglass-end"></i></div>
+                            <input id="endTimeField" type="time" name="end_time" class="f-input"
+                                   value="<?= htmlspecialchars($subject['end_time']) ?>">
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="fc-divider"></div>
@@ -462,12 +564,11 @@ if(isset($_POST['update'])){
 
             </form>
 
-            <a href="students.php" class="btn-cancel">
+            <a href="subjects.php" class="btn-cancel">
                 <i class="fa fa-arrow-left"></i> Cancel
             </a>
 
         </div>
-
     </div>
     <?php endif; ?>
 
