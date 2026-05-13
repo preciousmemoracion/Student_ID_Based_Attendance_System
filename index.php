@@ -2,7 +2,6 @@
 session_start();
 include "db_connect.php";
 
-// ── If already logged in, go to dashboard ──
 if (isset($_SESSION['admin']) && $_SESSION['admin'] === true) {
     header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
     header("Pragma: no-cache");
@@ -10,7 +9,6 @@ if (isset($_SESSION['admin']) && $_SESSION['admin'] === true) {
     exit();
 }
 
-// ── Nuclear no-cache headers ──
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
@@ -22,14 +20,12 @@ $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 
-    // ── Sanitize inputs ──
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
     if ($username === '' || $password === '') {
         $error = "Please fill in all fields.";
     } else {
-        // ── Prepared statement — prevents SQL injection ──
         $stmt = $conn->prepare("SELECT id, username, password FROM admins WHERE username = ? LIMIT 1");
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -38,19 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         if ($result && $result->num_rows === 1) {
             $admin = $result->fetch_assoc();
 
-            // ── Verify password ──
-            // Supports both password_hash() (bcrypt) AND legacy MD5
-            // Once you rehash passwords with password_hash(), remove the MD5 branch
             $validPassword = false;
 
             if (password_verify($password, $admin['password'])) {
-                // Modern bcrypt hash — correct
                 $validPassword = true;
             } elseif ($admin['password'] === md5($password)) {
-                // Legacy MD5 — still works, but auto-upgrades hash on login
                 $validPassword = true;
 
-                // ── AUTO-UPGRADE: rehash with bcrypt immediately ──
                 $newHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
                 $upd = $conn->prepare("UPDATE admins SET password = ? WHERE id = ?");
                 $upd->bind_param("si", $newHash, $admin['id']);
@@ -59,15 +49,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             }
 
             if ($validPassword) {
-                // ── Regenerate session ID before setting session ──
                 session_regenerate_id(true);
-                $_SESSION['admin']      = true;
-                $_SESSION['admin_id']   = $admin['id'];
-                $_SESSION['admin_user'] = $admin['username'];
-                $_SESSION['login_time'] = time();
-                // Tie session to this browser fingerprint
-                $_SESSION['ip']         = $_SERVER['REMOTE_ADDR'];
-                $_SESSION['ua']         = $_SERVER['HTTP_USER_AGENT'];
+                $_SESSION['admin']         = true;
+                $_SESSION['admin_id']      = $admin['id'];
+                $_SESSION['admin_user']    = $admin['username'];
+                $_SESSION['login_time']    = time();
+                $_SESSION['last_activity'] = time(); // ← THIS WAS MISSING
+                $_SESSION['ip']            = $_SERVER['REMOTE_ADDR'];
+                $_SESSION['ua']            = $_SERVER['HTTP_USER_AGENT'];
 
                 header("Location: admin/dashboard.php");
                 exit();
@@ -75,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 $error = "Invalid username or password.";
             }
         } else {
-            // Intentional: same error message whether user not found or wrong password
             $error = "Invalid username or password.";
         }
 
@@ -104,11 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     var DASHBOARD_URL = 'admin/dashboard.php';
     var FLOOD_COUNT   = 80;
 
-    // ── 1. Replace current history entry ──
-    // Overwrites whatever was before login in the stack
     try { history.replaceState({ page: 'login', i: 0 }, '', LOGIN_URL); } catch(e) {}
 
-    // ── 2. Flood history FORWARD so the forward button is also dead ──
     function floodHistory() {
         try {
             for (var i = 1; i <= FLOOD_COUNT; i++) {
@@ -118,17 +103,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     }
     floodHistory();
 
-    // ── 3. Intercept every back/forward press ──
     window.addEventListener('popstate', function () {
-        // Push immediately so URL never changes
         try { history.pushState({ page: 'login' }, '', LOGIN_URL); } catch(e) {}
-        // Refill buffer
         floodHistory();
-        // Check if somehow still logged in
         bounceIfLoggedIn();
     });
 
-    // ── 4. On every load: if still logged in, bounce to dashboard ──
     window.addEventListener('load', function () {
         try {
             var nav = performance.getEntriesByType('navigation');
@@ -139,7 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         bounceIfLoggedIn();
     });
 
-    // ── 5. bfcache restore (Safari / Firefox) ──
     window.addEventListener('pageshow', function (e) {
         if (e.persisted) {
             floodHistory();
@@ -147,14 +126,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         }
     });
 
-    // ── 6. Tab focus / visibility restore ──
     document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'visible') {
             bounceIfLoggedIn();
         }
     });
 
-    // ── Check session and redirect to dashboard if still logged in ──
     function bounceIfLoggedIn() {
         fetch('admin/check_session.php?_=' + Date.now(), {
             method: 'GET',
@@ -288,7 +265,6 @@ body > * { position: relative; z-index: 1; }
     outline: none;
 }
 
-/* ── RATE LIMIT WARNING ── */
 .alert-warning-login {
     background: rgba(180,83,9,0.2);
     border: 1px solid rgba(251,191,36,0.35);
@@ -361,7 +337,6 @@ body > * { position: relative; z-index: 1; }
     margin-top: 1.2rem;
 }
 
-/* ── Attempt counter ── */
 .attempt-indicator {
     text-align: center;
     font-size: 0.76rem;
@@ -452,22 +427,18 @@ body > * { position: relative; z-index: 1; }
 </div>
 
 <script>
-// ── Client-side brute-force throttle ──
-// Adds a delay after repeated failed attempts IN THIS TAB.
-// Server-side rate limiting (fail2ban / DB counter) is the real guard.
 (function () {
     var KEY      = 'login_fails';
     var LOCKOUT  = 'login_lockout';
-    var MAX_FAST = 3;       // attempts before slowdown
-    var DELAY_MS = 5000;    // 5-second cooldown after MAX_FAST fails
+    var MAX_FAST = 3;
+    var DELAY_MS = 5000;
 
-    var form    = document.getElementById('login-form');
-    var btn     = document.getElementById('login-btn');
-    var msg     = document.getElementById('attempt-msg');
+    var form = document.getElementById('login-form');
+    var btn  = document.getElementById('login-btn');
+    var msg  = document.getElementById('attempt-msg');
 
-    // Read stored fail count (sessionStorage so it clears on tab close)
-    function getFails()    { return parseInt(sessionStorage.getItem(KEY)  || '0'); }
-    function getLockout()  { return parseInt(sessionStorage.getItem(LOCKOUT) || '0'); }
+    function getFails()   { return parseInt(sessionStorage.getItem(KEY)     || '0'); }
+    function getLockout() { return parseInt(sessionStorage.getItem(LOCKOUT) || '0'); }
 
     function updateUI() {
         var fails   = getFails();
@@ -481,15 +452,10 @@ body > * { position: relative; z-index: 1; }
             setTimeout(updateUI, 1000);
         } else {
             btn.disabled = false;
-            if (fails >= MAX_FAST) {
-                msg.textContent = 'Warning: ' + fails + ' failed attempt(s).';
-            } else {
-                msg.textContent = '';
-            }
+            msg.textContent = fails >= MAX_FAST ? 'Warning: ' + fails + ' failed attempt(s).' : '';
         }
     }
 
-    // On page load with a PHP error — count the failed attempt
     <?php if ($error): ?>
     (function () {
         var fails = getFails() + 1;
@@ -503,17 +469,10 @@ body > * { position: relative; z-index: 1; }
 
     updateUI();
 
-    // Disable submit while locked out
     form.addEventListener('submit', function (e) {
         if (getLockout() > Date.now()) {
             e.preventDefault();
         }
-    });
-
-    // Clear on successful navigation away (login worked)
-    window.addEventListener('pagehide', function () {
-        // Only clear if navigating TO dashboard (not refresh)
-        // We leave the counter in place — server already accepted login
     });
 })();
 </script>

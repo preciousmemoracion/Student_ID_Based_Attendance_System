@@ -16,37 +16,49 @@ $msg_type = "";
 // SAVE SUBJECT
 if(isset($_POST['save'])){
 
+    // Normalize inputs — uppercase section + trim so "sectionA" == "SECTIONA"
     $subject    = trim($_POST['subject']);
-    $section    = trim($_POST['section']);
-    $day        = $_POST['day'];
+    $section    = strtoupper(trim($_POST['section']));
+    $day        = trim($_POST['day']);
     $start_time = $_POST['start_time'];
     $end_time   = $_POST['end_time'];
 
     if(empty($subject) || empty($section) || empty($day) || empty($start_time) || empty($end_time)){
-        $msg_type = "error"; $message = "All fields are required!";
+        $msg_type = "error";
+        $message  = "All fields are required!";
     }
     elseif(strtotime($start_time) >= strtotime($end_time)){
-        $msg_type = "error"; $message = "End time must be after start time!";
+        $msg_type = "error";
+        $message  = "End time must be after start time!";
     }
     else {
-        $stmt = $conn->prepare("SELECT id FROM subjects WHERE subject=? AND section=? AND day=?");
-        $stmt->bind_param("sss", $subject, $section, $day);
+        // Duplicate check: same subject (case-insensitive) + section + day + start_time
+        $stmt = $conn->prepare("
+            SELECT id FROM subjects 
+            WHERE LOWER(subject)  = LOWER(?) 
+              AND UPPER(section)  = UPPER(?) 
+              AND day             = ? 
+              AND start_time      = ?
+        ");
+        $stmt->bind_param("ssss", $subject, $section, $day, $start_time);
         $stmt->execute();
 
         if($stmt->get_result()->num_rows > 0){
-            $msg_type = "error"; $message = "Subject already exists for this section and day!";
+            $msg_type = "error";
+            $message  = "This subject already exists for the same section, day, and time!";
         } else {
             $stmt = $conn->prepare("INSERT INTO subjects (subject, section, day, start_time, end_time) VALUES (?, ?, ?, ?, ?)");
             $stmt->bind_param("sssss", $subject, $section, $day, $start_time, $end_time);
             $stmt->execute();
-            $msg_type = "success"; $message = "Subject successfully added!";
+            $msg_type = "success";
+            $message  = "Subject successfully added!";
         }
     }
 }
 
 // DELETE SUBJECT
 if(isset($_GET['delete'])){
-    $id = $_GET['delete'];
+    $id = intval($_GET['delete']); // sanitize to prevent SQL injection
     $conn->query("DELETE FROM subjects WHERE id=$id");
     header("Location: register_subject.php");
     exit();
@@ -98,7 +110,7 @@ body::before {
 body > * { position: relative; z-index: 1; }
 
 /* ════════════════════════════════
-   TOPBAR  — matches subjects.php
+   TOPBAR
 ════════════════════════════════ */
 .topbar {
     position: sticky; top: 0; z-index: 100;
@@ -254,6 +266,13 @@ body > * { position: relative; z-index: 1; }
     display: block;
 }
 
+.field-hint {
+    font-size: 0.72rem; font-weight: 500;
+    color: rgba(255,255,255,0.42);
+    margin-top: 0.3rem;
+    display: block;
+}
+
 .input-wrap { position: relative; }
 
 .input-wrap .input-icon {
@@ -282,7 +301,42 @@ body > * { position: relative; z-index: 1; }
     box-shadow: 0 0 0 3px rgba(59,130,246,0.22);
 }
 .field-input[type="time"] { color-scheme: dark; }
-.field-input option { background: #1e3a6e; color: #fff; }
+
+/* ── DAY QUICK-PICK CHIPS ── */
+.day-chips {
+    display: flex; flex-wrap: wrap; gap: 0.45rem;
+    margin-top: 0.55rem;
+}
+
+.day-chip {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.72rem; font-weight: 700;
+    padding: 0.28rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.15s;
+    user-select: none;
+    letter-spacing: 0.3px;
+}
+
+.day-chip:hover {
+    background: rgba(59,130,246,0.25);
+    border-color: rgba(59,130,246,0.55);
+    color: #93c5fd;
+    transform: translateY(-1px);
+}
+
+.day-chip:active { transform: translateY(0); }
+
+.day-chips-label {
+    font-size: 0.7rem; font-weight: 600;
+    color: rgba(255,255,255,0.38);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 0.3rem;
+    display: block;
+}
 
 /* ── DIVIDER ── */
 .field-divider {
@@ -377,39 +431,50 @@ body > * { position: relative; z-index: 1; }
 
                 <!-- Section & Day -->
                 <div class="form-row-2">
+
+                    <!-- SECTION — free-text, auto-uppercased live + via PHP -->
                     <div class="field-group">
                         <label class="field-label">Section</label>
                         <div class="input-wrap">
                             <i class="fa fa-layer-group input-icon"></i>
-                            <select name="section" class="field-input" required>
-                                <option value="">Select Section</option>
-                                <?php
-                                $sections = ['1A','1B','1C','2A','2B','2C','3A','3B','3C','4A','4B','4C'];
-                                $sel_sec = isset($_POST['section']) ? $_POST['section'] : '';
-                                foreach($sections as $s){
-                                    echo "<option value='$s'" . ($sel_sec===$s ? ' selected' : '') . ">$s</option>";
-                                }
-                                ?>
-                            </select>
+                            <input type="text" name="section" id="sectionInput" class="field-input"
+                                   placeholder="e.g. 1A, BSIT-2B, Grade 10"
+                                   value="<?= isset($_POST['section']) ? htmlspecialchars(strtoupper(trim($_POST['section']))) : '' ?>"
+                                   style="text-transform: uppercase;"
+                                   autocomplete="off"
+                                   required>
                         </div>
+                        <span class="field-hint">Auto-uppercased — "1a" and "1A" are treated as the same</span>
                     </div>
 
+                    <!-- DAY — free-text with quick-pick chips -->
                     <div class="field-group">
                         <label class="field-label">Day</label>
                         <div class="input-wrap">
                             <i class="fa fa-calendar-days input-icon"></i>
-                            <select name="day" class="field-input" required>
-                                <option value="">Select Day</option>
-                                <?php
-                                $days = ['Monday/Wednesday/Friday','Tuesday/Thursday'];
-                                $sel_day = isset($_POST['day']) ? $_POST['day'] : '';
-                                foreach($days as $d){
-                                    echo "<option value='$d'" . ($sel_day===$d ? ' selected' : '') . ">$d</option>";
-                                }
-                                ?>
-                            </select>
+                            <input type="text" name="day" id="dayInput" class="field-input"
+                                   placeholder="e.g. Monday, MWF, T/Th"
+                                   value="<?= isset($_POST['day']) ? htmlspecialchars($_POST['day']) : '' ?>"
+                                   autocomplete="off"
+                                   required>
+                        </div>
+                        <span class="field-hint">Type the scheduled day(s) for this subject</span>
+
+                        <!-- Quick-pick chips -->
+                        <span class="day-chips-label" style="margin-top:0.6rem;">Quick pick</span>
+                        <div class="day-chips">
+                            <span class="day-chip" onclick="setDay('Monday')">Monday</span>
+                            <span class="day-chip" onclick="setDay('Tuesday')">Tuesday</span>
+                            <span class="day-chip" onclick="setDay('Wednesday')">Wednesday</span>
+                            <span class="day-chip" onclick="setDay('Thursday')">Thursday</span>
+                            <span class="day-chip" onclick="setDay('Friday')">Friday</span>
+                            <span class="day-chip" onclick="setDay('Saturday')">Saturday</span>
+                            <span class="day-chip" onclick="setDay('Monday / Wednesday / Friday')">M / W / F</span>
+                            <span class="day-chip" onclick="setDay('Tuesday / Thursday')">T / Th</span>
+                            <span class="day-chip" onclick="setDay('Monday to Friday')">Mon – Fri</span>
                         </div>
                     </div>
+
                 </div>
 
                 <!-- Time -->
@@ -442,6 +507,27 @@ body > * { position: relative; z-index: 1; }
     </div>
 
 </div>
+
+<script>
+    // Quick-pick chips for Day field
+    function setDay(value) {
+        const input = document.getElementById('dayInput');
+        input.value = value;
+        input.style.borderColor = '#34d399';
+        input.style.boxShadow   = '0 0 0 3px rgba(52,211,153,0.25)';
+        setTimeout(() => {
+            input.style.borderColor = '';
+            input.style.boxShadow   = '';
+        }, 800);
+    }
+
+    // Auto-uppercase the section field as the user types (live, before form submit)
+    document.getElementById('sectionInput').addEventListener('input', function() {
+        const pos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+    });
+</script>
 
 </body>
 </html>

@@ -1,12 +1,10 @@
 <?php 
 include "../db_connect.php";
 
-// Start session only if not already started
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Protect page (admin only)
 if(!isset($_SESSION['admin'])) {
     header("Location: ../index.php");
     exit();
@@ -17,9 +15,9 @@ $message = "";
 // PROCESS FORM
 if(isset($_POST['save'])){
 
-    $id = trim($_POST['student_id']);
-    $name = trim($_POST['name']);
-    $section = trim($_POST['section']);
+    $id      = trim($_POST['student_id']);
+    $name    = trim($_POST['name']);
+    $section = strtoupper(trim($_POST['section'])); // normalize to uppercase
 
     if(empty($id) || empty($name) || empty($section)){
         $message = "error:All fields are required!";
@@ -99,7 +97,7 @@ body::before {
 body > * { position: relative; z-index: 1; }
 
 /* ════════════════════════════════
-   TOPBAR  — matches subjects.php
+   TOPBAR
 ════════════════════════════════ */
 .topbar {
     position: sticky; top: 0; z-index: 100;
@@ -248,6 +246,14 @@ body > * { position: relative; z-index: 1; }
     display: block;
 }
 
+.field-hint {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.42);
+    margin-top: 0.3rem;
+    display: block;
+}
+
 .field-input {
     width: 100%;
     background: rgba(255,255,255,0.08);
@@ -268,12 +274,6 @@ body > * { position: relative; z-index: 1; }
     border-color: var(--blue-lt);
     background: rgba(255,255,255,0.13);
     box-shadow: 0 0 0 3px rgba(59,130,246,0.22);
-}
-
-/* select dropdown */
-.field-input option {
-    background: #1e3a6e;
-    color: #fff;
 }
 
 .input-wrap {
@@ -385,6 +385,7 @@ body > * { position: relative; z-index: 1; }
                         <input type="text" name="student_id" class="field-input"
                                placeholder="e.g. 2024-00123"
                                value="<?= isset($_POST['student_id']) ? htmlspecialchars($_POST['student_id']) : '' ?>"
+                               autocomplete="off"
                                required>
                     </div>
                 </div>
@@ -397,27 +398,24 @@ body > * { position: relative; z-index: 1; }
                         <input type="text" name="name" class="field-input"
                                placeholder="e.g. Juan Dela Cruz"
                                value="<?= isset($_POST['name']) ? htmlspecialchars($_POST['name']) : '' ?>"
+                               autocomplete="off"
                                required>
                     </div>
                 </div>
 
-                <!-- Section -->
+                <!-- Section — free-text, auto-uppercased -->
                 <div class="field-group">
                     <label class="field-label">Section</label>
                     <div class="input-wrap">
                         <i class="fa fa-layer-group input-icon"></i>
-                        <select name="section" class="field-input" required>
-                            <option value="">Select Section</option>
-                            <?php
-                            $sections = ['1A','1B','1C','2A','2B','2C','3A','3B','3C','4A','4B','4C'];
-                            $selected_section = isset($_POST['section']) ? $_POST['section'] : '';
-                            foreach($sections as $s){
-                                $sel = ($selected_section === $s) ? 'selected' : '';
-                                echo "<option value='$s' $sel>$s</option>";
-                            }
-                            ?>
-                        </select>
+                        <input type="text" name="section" id="sectionInput" class="field-input"
+                               placeholder="e.g. 1A, BSIT-2B, Grade 10"
+                               value="<?= isset($_POST['section']) ? htmlspecialchars(strtoupper(trim($_POST['section']))) : '' ?>"
+                               style="text-transform: uppercase;"
+                               autocomplete="off"
+                               required>
                     </div>
+                    <span class="field-hint">Auto-uppercased — "1a" and "1A" are treated as the same section</span>
                 </div>
 
                 <hr class="field-divider">
@@ -431,6 +429,15 @@ body > * { position: relative; z-index: 1; }
         </div>
     </div>
 </div>
+
+<script>
+    // Auto-uppercase section field as the user types
+    document.getElementById('sectionInput').addEventListener('input', function() {
+        const pos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+    });
+</script>
 
 </body>
 </html>
